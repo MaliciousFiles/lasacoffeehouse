@@ -60,7 +60,7 @@ export default function ViewPerformers(props: {initialData: Stage[]}) {
                         </div>
                     )}
                 </div>
-                <div align="center" className="text-[#5e6b7c] mt-[1.2rem] rounded-[30px] cursor-pointer inline-block" onClick={()=>setShowPerformers(true)}>
+                <div className="text-[#5e6b7c] mt-[1.2rem] rounded-[30px] cursor-pointer inline-block" onClick={()=>setShowPerformers(true)}>
                     <AiOutlineUnorderedList className="inline-block" />
                     <p className="inline-block ml-2.5 mr-0 my-2.5">View All</p>
                 </div>
