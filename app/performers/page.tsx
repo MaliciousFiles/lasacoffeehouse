@@ -28,9 +28,7 @@ export default function ViewPerformers() {
                 close = reader.cancel;
 
                 while (true) {
-                    console.log("reading");
                     const {done, value} = await reader.read();
-                    console.log("read");
                     if (done) {
                         break;
                     }

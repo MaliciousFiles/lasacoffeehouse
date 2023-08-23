@@ -1,21 +1,21 @@
 import {readFileSync, writeFileSync} from "fs";
+import {Response} from "next/dist/compiled/@edge-runtime/primitives";
 
-export let callbacks: ((data: string) => void)[] = [];
-export let stream = new WritableStream<string>({
-    async write(chunk, controller) {
-        writeFileSync("data/performers.json", chunk)
-        console.log(`writing ${callbacks.length}`);
-        callbacks.forEach(f=>f(chunk));
+let callbacks: ((data: string) => void)[] = [];
+
+export async function POST(req: Request) {
+    let data: any;
+    try {
+        data = JSON.stringify(await req.json());
+    } catch (e) {
+        return new Response('invalid JSON');
     }
-})
 
-// export async function POST(req: Request) {
-//         let writer = stream.getWriter();
-//         await writer.write(new TextDecoder().decode(readFileSync("data/performers.json")));
-//         writer.releaseLock();
-//
-//         return new Response('success');
-// }
+    writeFileSync("data/performers.json", data);
+    [...callbacks].forEach(f=>f(data));
+
+    return new Response('success');
+}
 
 export async function GET() {
     let callback: (data: string) => void;
@@ -24,29 +24,22 @@ export async function GET() {
     return new Response(new ReadableStream({
         async pull(controller) {
             if (!sentFirstData) {
-                console.log("first data");
                 controller.enqueue(readFileSync("data/performers.json"));
                 sentFirstData = true;
                 return;
             }
 
-            console.log("pull");
             await new Promise<void>((resolve) => {
                 callback = (data: string) => {
-                    console.log("sending");
                     controller.enqueue(data);
                     callbacks.splice(callbacks.indexOf(callback), 1);
                     resolve();
                 }
-                console.log("callback created")
                 callbacks.push(callback);
-                console.log(`callback added (${callbacks.length})`)
             });
-            console.log("enqueued");
         },
 
         async cancel(reason) {
-            console.log("cancelled: "+reason +" ("+callbacks.length+")");
             callbacks.splice(callbacks.indexOf(callback), 1);
         }
     }))
