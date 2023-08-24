@@ -3,6 +3,8 @@
 import React, {useEffect, useState} from "react";
 import PerformerPopup from "@/app/performers/PerformerPopup";
 import {AiOutlineUnorderedList} from "react-icons/ai";
+import {getDatabase, onValue, ref} from "@firebase/database";
+import firebase from "@/firebase/init";
 
 type Stage = {
     name: string
@@ -14,6 +16,14 @@ export default function ViewPerformers(props: {initialData: Stage[]}) {
     const [selectedStage, setStage] = useState(0);
     const [showPerformers, setShowPerformers] = useState(false);
     const [data, setData] = useState<Stage[]>(props.initialData);
+
+    useEffect(() => {
+        const dataRef = ref(getDatabase(firebase));
+
+        return onValue(dataRef, (snapshot) => {
+            setData(snapshot.val());
+        });
+        }, [])
 
     // setup listener for new data
     useEffect(() => {
@@ -38,10 +48,10 @@ export default function ViewPerformers(props: {initialData: Stage[]}) {
         return () => { close("webpage closed").then() };
     }, []);
 
-    const stages = data.map(s=>s.name);
-    const stage = data[selectedStage].name;
-    const performers = data[selectedStage].performers;
-    const currentPerformer = data[selectedStage].currentPerformer;
+    const stages = data?.map(s=>s.name) ?? [];
+    const stage = data?.at(selectedStage)?.name ?? "";
+    const performers = data?.at(selectedStage)?.performers ?? [""];
+    const currentPerformer = data?.at(selectedStage)?.currentPerformer ?? 0;
 
     return (
         <div>
