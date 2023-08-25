@@ -22,8 +22,15 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-p {
+* {
   font-family: Avenir Next;
+}
+
+p {
   margin-top: 1em;
   margin-bottom: 1em;
+}
+
+.font2 {
+  font-family: "Arial Rounded MT Bold"
 }

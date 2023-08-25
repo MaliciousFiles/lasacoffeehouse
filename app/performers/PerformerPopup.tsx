@@ -28,7 +28,7 @@ export default function PerformerPopup(props: {
                                         notifs.has(i) ? <FaBell className="h-5 ml-[30px]" /> : <FaRegBell className="h-5 ml-[30px]" />
                                     }
                                 </div>
-                                <p className={"inline-block text-[17px] ml-[15px]" + (i < currentPerformer ? " line-through" : i === currentPerformer ? " text-[22px]" : "")} style={{fontFamily: "Arial Rounded MT Bold"}}>
+                                <p className={"inline-block text-[17px] ml-[15px] font2" + (i < currentPerformer ? " line-through" : i === currentPerformer ? " text-[22px]" : "")}>
                                     {s}
                                 </p>
                             </div>, <div key={`2${i}`} className="flex bg-[#cbcbcb] w-[90%] h-px m-auto"></div>]

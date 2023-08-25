@@ -11,6 +11,5 @@ const firebase = initializeApp({
     measurementId: "G-0PZJ153E97",
     databaseURL: "https://lasacoffeehouse-74e2e-default-rtdb.firebaseio.com/"
 });
-signInWithEmailAndPassword(getAuth(), "admin@username.com", "lasa123").then();
 
 export default firebase;

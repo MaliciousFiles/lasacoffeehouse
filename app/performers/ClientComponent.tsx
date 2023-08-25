@@ -25,29 +25,6 @@ export default function ViewPerformers(props: {initialData: Stage[]}) {
         });
         }, [])
 
-    // setup listener for new data
-    useEffect(() => {
-        let close: (reason?: any) => Promise<void>;
-
-        new Promise(
-            async () => {
-                let reader: ReadableStreamReader<Uint8Array> = (await fetch("/data")).body!.getReader();
-                close = reader.cancel;
-
-                while (true) {
-                    const {done, value} = await reader.read();
-                    if (done) {
-                        break;
-                    }
-
-                    setData(JSON.parse(new TextDecoder("utf-8").decode(value)));
-                }
-            }
-        ).then();
-
-        return () => { close("webpage closed").then() };
-    }, []);
-
     const stages = data?.map(s=>s.name) ?? [];
     const stage = data?.at(selectedStage)?.name ?? "";
     const performers = data?.at(selectedStage)?.performers ?? [""];
@@ -64,9 +41,9 @@ export default function ViewPerformers(props: {initialData: Stage[]}) {
                 <div className="Names whitespace-nowrap w-screen overflow-x-hidden scroll-smooth relative">
                     {stages.map(s =>
                         <div key={s} className="inline-block text-center -translate-x-2/4 translate-y-0 ml-[50vw] mr-[50vw]">
-                            <p className="text-[#0A2240] text-2xl" style={{fontFamily: "Arial Rounded MT Bold"}}>{performers[currentPerformer]}</p>
-                            <p className="text-[#5e6b7c] text-xl mt-[35px]" style={{fontFamily: "Arial Rounded MT Bold"}}>{performers[currentPerformer+1]}</p>
-                            <p className="text-[#5e6b7c] text-xl mt-[35px]" style={{fontFamily: "Arial Rounded MT Bold"}}>{performers[currentPerformer+2]}</p>
+                            <p className="text-[#0A2240] text-2xl font2">{performers[currentPerformer]}</p>
+                            <p className="text-[#5e6b7c] text-xl mt-[35px] font2">{performers[currentPerformer+1]}</p>
+                            <p className="text-[#5e6b7c] text-xl mt-[35px] font2">{performers[currentPerformer+2]}</p>
                         </div>
                     )}
                 </div>
