@@ -10,7 +10,8 @@ export default function ManagePerformers() {
 
     return !loggedIn ? <SignInPopup logIn={()=>setLoggedIn(true)} /> : (
         <div className="h-full w-full">
-
+            <p className="text-center text-2xl">Manager Dashboard</p>
+            
         </div>
     )
 }

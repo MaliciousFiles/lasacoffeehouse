@@ -14,12 +14,13 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  return (
-    <html lang="en" className={"w-full h-full"}>
-      <head>
-        <title>LASA Coffeehouse</title>
-      </head>
-      <body className={"w-full h-full " + inter.className}>{children}</body>
-    </html>
-  )
+
+    return (
+        <html lang="en" className={"w-full h-full"}>
+        <head>
+            <title>LASA Coffeehouse</title>
+        </head>
+        <body className={"w-full h-full " + inter.className}>{children}</body>
+        </html>
+    )
 }

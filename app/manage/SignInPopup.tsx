@@ -18,6 +18,7 @@ export default function SignInPopup(props: {logIn: ()=>void}) {
             await signInWithEmailAndPassword(getAuth(firebase),
                 `${usernameRef.current!.value}@username.com`,
                 passwordRef.current!.value);
+
             props.logIn();
         } catch {
             let button = evt.target as HTMLButtonElement;

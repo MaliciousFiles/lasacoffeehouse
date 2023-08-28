@@ -18,6 +18,14 @@ export default function ViewPerformers(props: {initialData: Stage[]}) {
     const [data, setData] = useState<Stage[]>(props.initialData);
 
     useEffect(() => {
+        navigator.serviceWorker.register("/notificationWorker.js")
+            .then(registration => {
+                registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: ""
+                })
+            })
+
         const dataRef = ref(getDatabase(firebase));
 
         return onValue(dataRef, (snapshot) => {
