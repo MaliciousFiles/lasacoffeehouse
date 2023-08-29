@@ -20,7 +20,6 @@ export default function ViewPerformers(props: {initialData: Stage[]}) {
     const [data, setData] = useState<Stage[]>(props.initialData);
 
     useEffect(() => {
-        alert(navigator.serviceWorker);
         const messaging = getMessaging(firebase);
 
         getToken(messaging, {vapidKey: "BKTiO6q1fNuQyg35h5_2PAzJhCktM0hur4llEn1gIB5Dlf6oCRCD5RIA4OY6BJvdR1UifBM22hAcKwVMc-OSUnc"})
@@ -28,10 +27,12 @@ export default function ViewPerformers(props: {initialData: Stage[]}) {
                 if (token) {
                     alert(token);
                 } else {
-                    Notification.requestPermission().then(permission => {
-                        console.log("asked for permission: ", permission);
-                    })
-                }
+                    alert("No token, asking for confirmation")
+                    if (confirm("Notifications?")) {
+                        Notification.requestPermission().then(permission => {
+                            alert("asked for permission: "+permission);
+                        })
+                    }}
             });
 
         onMessage(messaging, (payload) => {
