@@ -22,7 +22,9 @@ export default function ViewPerformers(props: {initialData: Stage[]}) {
     // init Firebase and service worker
     useEffect(() => {
         navigator.serviceWorker.register("/notification-sw.js")
-            .then(() => {Notification.requestPermission().then()})
+            .then(() => {
+                console.log(Notification.permission);
+                Notification.requestPermission().then()})
 
         const dataRef = ref(getDatabase(firebase));
 
