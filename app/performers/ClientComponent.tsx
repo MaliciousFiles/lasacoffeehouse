@@ -33,6 +33,8 @@ export default function ViewPerformers(props: {initialData: Stage[]}) {
                             alert("asked for permission: "+permission);
                         })
                     }}
+            }).catch(error => {
+                alert(error);
             });
 
         onMessage(messaging, (payload) => {
