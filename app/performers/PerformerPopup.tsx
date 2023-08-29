@@ -23,16 +23,6 @@ export default function PerformerPopup(props: {
                                     else notifs.add(i);
 
                                     setNotifs(new Set(notifs));
-
-                                    new Promise(async () => {
-                                        await new Promise(resolve => setTimeout(resolve, 2000));
-
-                                        Notification.requestPermission().then((permission) => {
-                                            new Notification("Title", {
-                                                body: "body"
-                                            });
-                                        })
-                                    }).then();
                                 }}>
                                     {
                                         notifs.has(i) ? <FaBell className="h-5 ml-[30px]" /> : <FaRegBell className="h-5 ml-[30px]" />

@@ -5,6 +5,8 @@ import PerformerPopup from "@/app/performers/PerformerPopup";
 import {AiOutlineUnorderedList} from "react-icons/ai";
 import {getDatabase, onValue, ref} from "@firebase/database";
 import firebase from "@/firebase/init";
+import {getMessaging, getToken, onMessage} from "@firebase/messaging";
+import {onBackgroundMessage} from "@firebase/messaging/sw";
 
 type Stage = {
     name: string
@@ -18,20 +20,24 @@ export default function ViewPerformers(props: {initialData: Stage[]}) {
     const [data, setData] = useState<Stage[]>(props.initialData);
 
     useEffect(() => {
-        navigator.serviceWorker.register("/notificationWorker.js")
-            .then(registration => {
-                registration.pushManager.subscribe({
-                    userVisibleOnly: true,
-                    applicationServerKey: ""
-                })
-            })
+        alert(navigator.serviceWorker);
+        const messaging = getMessaging(firebase);
 
-        const dataRef = ref(getDatabase(firebase));
+        getToken(messaging, {vapidKey: "BKTiO6q1fNuQyg35h5_2PAzJhCktM0hur4llEn1gIB5Dlf6oCRCD5RIA4OY6BJvdR1UifBM22hAcKwVMc-OSUnc"})
+            .then(token => {
+                if (token) {
+                    alert(token);
+                } else {
+                    Notification.requestPermission().then(permission => {
+                        console.log("asked for permission: ", permission);
+                    })
+                }
+            });
 
-        return onValue(dataRef, (snapshot) => {
-            setData(snapshot.val());
+        onMessage(messaging, (payload) => {
+            new Notification(payload.notification?.title ?? "", payload.notification);
         });
-        }, [])
+    }, []);
 
     const stages = data?.map(s=>s.name) ?? [];
     const stage = data?.at(selectedStage)?.name ?? "";
