@@ -19,28 +19,17 @@ export default function ViewPerformers(props: {initialData: Stage[]}) {
     const [showPerformers, setShowPerformers] = useState(false);
     const [data, setData] = useState<Stage[]>(props.initialData);
 
-    const startMessaging = () => {
-        const messaging = getMessaging(firebase);
+    // init Firebase and service worker
+    useEffect(() => {
+        navigator.serviceWorker.register("/notification-sw.js")
+            .then(() => {Notification.requestPermission().then()})
 
-        getToken(messaging, {vapidKey: "BKTiO6q1fNuQyg35h5_2PAzJhCktM0hur4llEn1gIB5Dlf6oCRCD5RIA4OY6BJvdR1UifBM22hAcKwVMc-OSUnc"})
-            .then(token => {
-                if (token) {
-                    alert(token);
-                } else {
-                    alert("No token, asking for confirmation")
-                    if (confirm("Notifications?")) {
-                        Notification.requestPermission().then(permission => {
-                            alert("asked for permission: "+permission);
-                        })
-                    }}
-            }).catch(error => {
-                alert(error);
-            });
+        const dataRef = ref(getDatabase(firebase));
 
-        onMessage(messaging, (payload) => {
-            new Notification(payload.notification?.title ?? "", payload.notification);
+        return onValue(dataRef, (snapshot) => {
+            setData(snapshot.val());
         });
-    };
+    }, [])
 
     const stages = data?.map(s=>s.name) ?? [];
     const stage = data?.at(selectedStage)?.name ?? "";
@@ -49,7 +38,6 @@ export default function ViewPerformers(props: {initialData: Stage[]}) {
 
     return (
         <div>
-            <button onClick={startMessaging} className="bg-red-600 mt-3 p-2">START MESSAGING</button>
             <div className="mt-12 w-full">
                 <p className="text-2xl text-center text-[#0A2240] mb-2.5">LASA Coffeehouse</p>
                 <div className="w-[95%] h-0.5 m-auto" style={{background: "linear-gradient(to right, #00000000 10%, #5e6b7c, #00000000 90%)"}}></div>
