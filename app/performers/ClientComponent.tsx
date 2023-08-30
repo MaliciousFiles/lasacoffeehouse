@@ -21,11 +21,6 @@ export default function ViewPerformers(props: {initialData: Stage[]}) {
 
     // init Firebase and service worker
     useEffect(() => {
-        navigator.serviceWorker.register("/notification-sw.js")
-            .then(() => {
-                console.log(Notification.permission);
-                Notification.requestPermission().then()})
-
         const dataRef = ref(getDatabase(firebase));
 
         return onValue(dataRef, (snapshot) => {
@@ -44,6 +39,14 @@ export default function ViewPerformers(props: {initialData: Stage[]}) {
                 <p className="text-2xl text-center text-[#0A2240] mb-2.5">LASA Coffeehouse</p>
                 <div className="w-[95%] h-0.5 m-auto" style={{background: "linear-gradient(to right, #00000000 10%, #5e6b7c, #00000000 90%)"}}></div>
             </div>
+
+            {Notification.permission != "granted" && <button className={"p-3 bg-indigo-950 mt-10 text-blue-200 rounded-3xl text-sm font-bold"} onClick={(evt) => {
+                // TODO: make this a popup with instructions
+                navigator.serviceWorker.register("/notification-sw.js")
+                    .then(() => {Notification.requestPermission().then()});
+
+                (evt.target as HTMLButtonElement).remove();
+            }}>Enable Notifications</button>}
 
             <div className="inline-block mt-[3rem] text-center">
                 <div className="Names whitespace-nowrap w-screen overflow-x-hidden scroll-smooth relative">

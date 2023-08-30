@@ -36,10 +36,10 @@ database.ref().on('value', (snapshot) => {
 
         for (let i = 0; i <= 1; i++) {
             const performer = stage.performers[stage.currentPerformer + i]
-            console.log("  PERFORMER ", performer);
 
             store.count(performer).onsuccess = (evt) => {
-                if (evt.target.result === 0) return;
+                console.log("  PERFORMER ", performer, " = ", evt.target.result);
+                if (!evt.target.result) return;
 
                 self.registration.showNotification(!i ? "Performing Now" : "Up Next", {
                     body: !i ? `${performer} is now performing!` : `${performer} is performing next!`
