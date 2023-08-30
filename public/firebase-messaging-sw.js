@@ -62,5 +62,6 @@ const messaging = firebase.messaging();
 // self.addEventListener('unhandledrejection', evt => console.log('unhandledrejection', evt));
 // messaging.onBackgroundMessage(handleMessage)
 messaging.onBackgroundMessage((payload) => {
+    console.log("background message");
     self.registration.showNotification(payload.notification.title, payload.notification).then();
 })
