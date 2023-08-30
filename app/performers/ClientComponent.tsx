@@ -43,18 +43,20 @@ export default function ViewPerformers(props: {initialData: Stage[]}) {
         getToken(messaging, {vapidKey: "BKTiO6q1fNuQyg35h5_2PAzJhCktM0hur4llEn1gIB5Dlf6oCRCD5RIA4OY6BJvdR1UifBM22hAcKwVMc-OSUnc"})
             .then(token => {
                 if (token) {
-                    set(ref(getDatabase(firebase), `/fcm/${token}`), Date.now())
-                        .catch(() => {});
+                    alert("token")
+                    // set(ref(getDatabase(firebase), `/fcm/${token}`), Date.now())
+                    //     .catch(() => {});
                 }
             })
 
         console.log("registering messages");
         onMessage(messaging, (payload) => {
             console.log("onMessage ", payload)
-            navigator.serviceWorker.getRegistration("/firebase-cloud-messaging-push-scope")
-                .then(registration => {
-                    registration?.active?.postMessage(payload)
-                })
+            new Notification(payload.notification?.title ?? "", payload.notification);
+            // navigator.serviceWorker.getRegistration("/firebase-cloud-messaging-push-scope")
+            //     .then(registration => {
+            //         registration?.active?.postMessage(payload)
+            //     })
         });
 
     }, [notifsEnabled]);
