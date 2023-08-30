@@ -48,7 +48,9 @@ export default function ViewPerformers(props: {initialData: Stage[]}) {
                 }
             })
 
+        console.log("registering messages");
         onMessage(messaging, (payload) => {
+            console.log("onMessage ", payload)
             navigator.serviceWorker.getRegistration("/firebase-cloud-messaging-push-scope")
                 .then(registration => {
                     registration?.active?.postMessage(payload)

@@ -43,5 +43,6 @@ function handleMessage(payload) {
     }
 }
 
+console.log("[SW] registering messages");
 self.addEventListener('message', evt => handleMessage(evt.data));
 messaging.onBackgroundMessage(handleMessage)
