@@ -19,6 +19,12 @@ export default function ViewPerformers(props: {initialData: Stage[]}) {
     const [showPerformers, setShowPerformers] = useState(false);
     const [data, setData] = useState<Stage[]>(props.initialData);
 
+    // TODO: associated with temp notification permission button
+    const [notifsEnabled, setNotifsEnabled] = useState(true);
+    useEffect(() => {
+        setNotifsEnabled(Notification.permission == "granted");
+    }, []);
+
     // init Firebase and service worker
     useEffect(() => {
         const dataRef = ref(getDatabase(firebase));
@@ -40,7 +46,7 @@ export default function ViewPerformers(props: {initialData: Stage[]}) {
                 <div className="w-[95%] h-0.5 m-auto" style={{background: "linear-gradient(to right, #00000000 10%, #5e6b7c, #00000000 90%)"}}></div>
             </div>
 
-            {Notification.permission != "granted" && <button className={"p-3 bg-indigo-950 mt-10 text-blue-200 rounded-3xl text-sm font-bold"} onClick={(evt) => {
+            {!notifsEnabled && <button className={"p-3 bg-indigo-950 mt-10 text-blue-200 rounded-3xl text-sm font-bold"} onClick={(evt) => {
                 // TODO: make this a popup with instructions
                 navigator.serviceWorker.register("/notification-sw.js")
                     .then(() => {Notification.requestPermission().then()});
