@@ -19,43 +19,9 @@ function handleMessage(payload) {
 
 // doesn't need to send notification on iOS - happens automatically
 // iOS detection taken from https://stackoverflow.com/a/9039885
-if (['iPad Simulator', 'iPhone Simulator', 'iPod Simulator', 'iPad', 'iPhone', 'iPod']
-    .includes(navigator.platform)  ||
-    (navigator.userAgent.includes("Mac") && "ontouchend" in document)) {
-    addEventListener('message', evt=>handleMessage(evt.data))
+if (!['iPad Simulator', 'iPhone Simulator', 'iPod Simulator', 'iPad', 'iPhone', 'iPod']
+    .includes(navigator.platform)  &&
+    !(navigator.userAgent.includes("Mac") && "ontouchend" in document)) {
+    addEventListener('message', evt => handleMessage(evt.data))
     messaging.onBackgroundMessage(handleMessage);
 }
-// let notifsDB;
-//
-// (() => {
-//     let request = indexedDB.open("notifications", 1);
-//
-//     request.onsuccess = (evt) => {
-//         notifsDB = evt.target.result;
-//     }
-// })()
-//
-// function handleMessage(payload) {
-//     console.log("[SW] handleMessage ", payload);
-//     const {stage} = payload.data;
-//     const performers = [payload.data.current, payload.data.next];
-//
-//     const store = notifsDB.transaction(stage, "readwrite").objectStore(stage);
-//
-//     for (let i = 0; i <= 1; i++) {
-//         const performer = performers[i]
-//
-//         store.count(performer).onsuccess = (evt) => {
-//             console.log(stage+"/"+performer+" = "+evt.target.result);
-//             if (!evt.target.result) return;
-//
-//             self.registration.showNotification(!i ? "Performing Now" : "Up Next", {
-//                 body: !i ? `${performer} is now performing!` : `${performer} is performing next!`
-//             }).then();
-//         }
-//     }
-//     self.registration.showNotification("Received Notification!").then();
-// }
-//
-
-// messaging.onBackgroundMessage(handleMessage)
