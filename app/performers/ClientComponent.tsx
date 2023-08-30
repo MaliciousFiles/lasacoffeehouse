@@ -3,7 +3,7 @@
 import React, {useEffect, useState} from "react";
 import PerformerPopup from "@/app/performers/PerformerPopup";
 import {AiOutlineUnorderedList} from "react-icons/ai";
-import {get, getDatabase, onValue, ref, set} from "@firebase/database";
+import {get, getDatabase, onValue, ref, remove, set} from "@firebase/database";
 import firebase from "@/firebase/init";
 import {getMessaging, getToken, onMessage} from "@firebase/messaging";
 import {onBackgroundMessage} from "@firebase/messaging/sw";
@@ -19,6 +19,24 @@ export default function ViewPerformers(props: {initialData: {[index: string]: St
     const [selectedStage, setStage] = useState(0);
     const [showPerformers, setShowPerformers] = useState(false);
     const [data, setData] = useState(Object.values(props.initialData));
+    const [notifsDB, setNotifsDB] = useState<IDBDatabase>();
+    const [fbToken, setFbToken] = useState<string>();
+
+    // init `notifsDB`
+    useEffect(() =>{
+        let request = indexedDB.open("notifications", 1);
+        request.onupgradeneeded = evt => {
+            const db = (evt.target! as IDBOpenDBRequest).result;
+            const stage = data[selectedStage].name;
+
+            if (db.objectStoreNames.contains(stage)) db.deleteObjectStore(stage);
+            db.createObjectStore(stage, {keyPath: "performer"});
+        }
+
+        request.onsuccess = (evt) => {
+            setNotifsDB((evt.target as IDBOpenDBRequest).result);
+        }
+    }, [selectedStage]);
 
     // TODO: associated with temp notification permission button
     const [notifsEnabled, setNotifsEnabled] = useState(false);
@@ -39,23 +57,23 @@ export default function ViewPerformers(props: {initialData: {[index: string]: St
         if (!notifsEnabled) return;
 
         const messaging = getMessaging(firebase);
+        const database = getDatabase(firebase);
 
         getToken(messaging, {vapidKey: "BKTiO6q1fNuQyg35h5_2PAzJhCktM0hur4llEn1gIB5Dlf6oCRCD5RIA4OY6BJvdR1UifBM22hAcKwVMc-OSUnc"})
             .then(token => {
                 if (token) {
-                    alert(token)
-                    // set(ref(getDatabase(firebase), `/fcm/${token}`), Date.now())
-                    //     .catch(() => {});
+                    set(ref(database, `/fcm/${token}/last_used`), Date.now()).then();
+
+                    setFbToken(token);
                 }
             })
 
-        console.log("registering messages");
+        // just let the SW handle it
         onMessage(messaging, (payload) => {
-            new Notification("main page", payload.notification);
-            // navigator.serviceWorker.getRegistration("/firebase-cloud-messaging-push-scope")
-            //     .then(registration => {
-            //         registration?.active?.postMessage(payload)
-            //     })
+            navigator.serviceWorker.getRegistration("/firebase-cloud-messaging-push-scope")
+                .then(registration => {
+                    registration?.active?.postMessage(payload)
+                })
         });
 
     }, [notifsEnabled]);
@@ -105,7 +123,7 @@ export default function ViewPerformers(props: {initialData: {[index: string]: St
                     </div>, <span key={`span${i}`} className="mx-[15px] my-0"></span>]))
                 .slice(0, -1)}
             </div>
-            <PerformerPopup show={showPerformers} performers={performers} currentPerformer={currentPerformer} currentStage={stage} close={()=>setShowPerformers(false)}></PerformerPopup>
+            <PerformerPopup show={showPerformers} notifsDB={notifsDB} fbToken={fbToken} performers={performers} currentPerformer={currentPerformer} currentStage={stage} close={()=>setShowPerformers(false)}></PerformerPopup>
         </div>
     )
 }

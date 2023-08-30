@@ -1,17 +1,18 @@
 import React, {useContext, useEffect, useState} from "react";
 import {FaBell, FaRegBell} from "react-icons/fa";
+import {getDatabase, ref, set} from "@firebase/database";
+import firebase from "@/firebase/init";
 
 export default function PerformerPopup(props: {
-    show: boolean, performers: string[], currentPerformer: number, currentStage: string, close: () => void
+    show: boolean, notifsDB?: IDBDatabase, fbToken?: string, performers: string[], currentPerformer: number, currentStage: string, close: () => void
 }) {
-    const {show, performers, currentPerformer, currentStage, close} = props;
+    const {show, notifsDB, fbToken, performers, currentPerformer, currentStage, close} = props;
 
     const [notifs, setNotifs] = useState(new Set());
-    const [notifsDB, setNotifsDB] = useState<IDBDatabase>();
 
     // set `notifs` when `notifsDB` gets set
     useEffect(() => {
-        if (notifsDB === undefined) return;
+        if (!notifsDB) return;
 
         const store = notifsDB.transaction(currentStage, "readwrite").objectStore(currentStage);
         store.getAll().onsuccess = (evt) => {
@@ -19,20 +20,21 @@ export default function PerformerPopup(props: {
         };
     }, [notifsDB]);
 
-    // init `notifsDB`
-    useEffect(() =>{
-        let request = indexedDB.open("notifications", 1);
-        request.onupgradeneeded = evt => {
-            const db = (evt.target! as IDBOpenDBRequest).result;
+    // sync to FB every time `notifs` is updated
+    useEffect(() => {
+        if (!notifsDB || !fbToken) return;
 
-            if (db.objectStoreNames.contains(currentStage)) db.deleteObjectStore(currentStage);
-            db.createObjectStore(currentStage, {keyPath: "performer"});
-        }
+        const tx = notifsDB.transaction(notifsDB.objectStoreNames, "readwrite");
+        for (const stage of Array.from(notifsDB.objectStoreNames)) {
+            const store = tx.objectStore(stage);
 
-        request.onsuccess = (evt) => {
-            setNotifsDB((evt.target as IDBOpenDBRequest).result);
+            store.getAll().onsuccess = (evt) => {
+                const data = (evt.target as IDBRequest<any[]>).result;
+
+                set(ref(getDatabase(firebase), `/fcm/${fbToken}/${stage}`), data).then();
+            }
         }
-    }, [currentStage])
+    }, [fbToken, notifsDB, notifs])
 
     return (
         <div className={"w-full h-full fixed top-0 " + (show ? "opacity-100 visible transition-opacity duration-[0.3s]" : "opacity-0 invisible")} style={{background: "rgba(0, 0, 0, 0.5)", transition: show ? "" : "opacity 0.2s 0.1s, visibility 0.4s"}} onClick={e => (e.target as HTMLElement).classList.contains("PopupContainer") && close()}>
