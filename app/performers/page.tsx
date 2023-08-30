@@ -4,6 +4,6 @@ import firebase from "@/firebase/init";
 
 export default async function ServerComponent() {
     return (
-        <ViewPerformers initialData={(await get(ref(getDatabase(firebase)))).val()} />
+        <ViewPerformers initialData={(await get(ref(getDatabase(firebase), "/data"))).val()} />
     )
 }

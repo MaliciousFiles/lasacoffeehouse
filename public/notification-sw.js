@@ -24,13 +24,12 @@ let notifsDB;
 })()
 
 let skip = true;
-database.ref().on('value', (snapshot) => {
+database.ref("/data").on('value', (snapshot) => {
     if (skip) { skip = false; return; }
     const data = snapshot.val()
 
     const tx = notifsDB.transaction(notifsDB.objectStoreNames, "readwrite")
     for (let stage of data) {
-        console.log("STAGE ", stage.name);
         if (!notifsDB.objectStoreNames.contains(stage.name)) continue;
         const store = tx.objectStore(stage.name);
 
@@ -38,7 +37,7 @@ database.ref().on('value', (snapshot) => {
             const performer = stage.performers[stage.currentPerformer + i]
 
             store.count(performer).onsuccess = (evt) => {
-                console.log("  PERFORMER ", performer, " = ", evt.target.result);
+                console.log(stage.name+"/"+performer+" = "+evt.target.result);
                 if (!evt.target.result) return;
 
                 self.registration.showNotification(!i ? "Performing Now" : "Up Next", {

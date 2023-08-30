@@ -3,10 +3,11 @@
 import React, {useEffect, useState} from "react";
 import PerformerPopup from "@/app/performers/PerformerPopup";
 import {AiOutlineUnorderedList} from "react-icons/ai";
-import {getDatabase, onValue, ref} from "@firebase/database";
+import {get, getDatabase, onValue, ref, set} from "@firebase/database";
 import firebase from "@/firebase/init";
 import {getMessaging, getToken, onMessage} from "@firebase/messaging";
 import {onBackgroundMessage} from "@firebase/messaging/sw";
+import {exists} from "fs";
 
 type Stage = {
     name: string
@@ -27,12 +28,31 @@ export default function ViewPerformers(props: {initialData: Stage[]}) {
 
     // init Firebase and service worker
     useEffect(() => {
-        const dataRef = ref(getDatabase(firebase));
+        const dataRef = ref(getDatabase(firebase), "/data");
 
         return onValue(dataRef, (snapshot) => {
             setData(snapshot.val());
         });
     }, [])
+
+    useEffect(() => {
+        if (!notifsEnabled) return;
+
+        const messaging = getMessaging(firebase);
+
+        getToken(messaging, {vapidKey: "BKTiO6q1fNuQyg35h5_2PAzJhCktM0hur4llEn1gIB5Dlf6oCRCD5RIA4OY6BJvdR1UifBM22hAcKwVMc-OSUnc"})
+            .then(token => {
+                if (token) {
+                    set(ref(getDatabase(firebase), `/fcm/${token}`), Date.now())
+                        .catch(() => {});
+                }
+            })
+
+        onMessage(messaging, (payload) => {
+            navigator.serviceWorker.controller?.postMessage(payload)
+        });
+
+    }, [notifsEnabled]);
 
     const stages = data?.map(s=>s.name) ?? [];
     const stage = data?.at(selectedStage)?.name ?? "";
@@ -47,11 +67,9 @@ export default function ViewPerformers(props: {initialData: Stage[]}) {
             </div>
 
             {!notifsEnabled && <button className={"p-3 bg-indigo-950 mt-10 text-blue-200 rounded-3xl text-sm font-bold"} onClick={(evt) => {
-                // TODO: make this a popup with instructions
-                navigator.serviceWorker.register("/notification-sw.js")
-                    .then(() => {Notification.requestPermission().then()});
-
-                (evt.target as HTMLButtonElement).remove();
+                Notification.requestPermission().then(permission => {
+                    setNotifsEnabled(permission == 'granted')
+                })
             }}>Enable Notifications</button>}
 
             <div className="inline-block mt-[3rem] text-center">

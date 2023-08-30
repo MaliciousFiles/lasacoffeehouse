@@ -12,7 +12,36 @@ firebase.initializeApp({
     databaseURL: "https://lasacoffeehouse-74e2e-default-rtdb.firebaseio.com/"
 });
 const messaging = firebase.messaging();
+let notifsDB;
 
-messaging.onBackgroundMessage((payload) => {
-    self.registration.showNotification(payload.notification.title, payload.notification).then();
-})
+(() => {
+    let request = indexedDB.open("notifications", 1);
+
+    request.onsuccess = (evt) => {
+        notifsDB = evt.target.result;
+    }
+})()
+
+function handleMessage(payload) {
+    const stage = "Main Stage";
+    const performers = ["Performer 1", "Performer 2"];
+
+    const store = notifsDB.transaction(stage, "readwrite").objectStore(stage);
+
+    for (let i = 0; i <= 1; i++) {
+        const performer = performers[i]
+
+        store.count(performer).onsuccess = (evt) => {
+            console.log(stage.name+"/"+performer+" = "+evt.target.result);
+            if (!evt.target.result) return;
+
+            self.registration.showNotification(!i ? "Performing Now" : "Up Next", {
+                body: !i ? `${performer} is now performing!` : `${performer} is performing next!`
+            }).then();
+        }
+    }
+}
+
+messaging.onMessage(handleMessage)
+
+messaging.onBackgroundMessage(handleMessage)
