@@ -79,6 +79,6 @@ self.addEventListener('pushsubscriptionchange', evt => console.log('pushsubscrip
 self.addEventListener('rejectionhandled', evt => console.log('rejectionhandled', evt));
 self.addEventListener('unhandledrejection', evt => console.log('unhandledrejection', evt));
 // messaging.onBackgroundMessage(handleMessage)
-// messaging.onBackgroundMessage((payload) => {
-//     self.registration.showNotification(payload.data.stage, payload.notification).then();
-// })
+messaging.onBackgroundMessage((payload) => {
+    self.registration.showNotification(payload.data.stage, payload.notification).then();
+})
