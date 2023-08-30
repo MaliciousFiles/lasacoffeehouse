@@ -17,8 +17,14 @@ function handleMessage(payload) {
     self.registration.showNotification(payload.notification.title, payload.notification).then();
 }
 
-addEventListener('message', evt=>handleMessage(evt.data))
-messaging.onBackgroundMessage(handleMessage);
+// doesn't need to send notification on iOS - happens automatically
+// iOS detection taken from https://stackoverflow.com/a/9039885
+if (['iPad Simulator', 'iPhone Simulator', 'iPod Simulator', 'iPad', 'iPhone', 'iPod']
+    .includes(navigator.platform)  ||
+    (navigator.userAgent.includes("Mac") && "ontouchend" in document)) {
+    addEventListener('message', evt=>handleMessage(evt.data))
+    messaging.onBackgroundMessage(handleMessage);
+}
 // let notifsDB;
 //
 // (() => {
