@@ -33,6 +33,10 @@ export default async function updateClients(jwt: string, stage: string, current:
 
         messaging.send({
             token,
+            notification: {
+                title: "Title",
+                body: "Body"
+            },
             data: {stage, current, next}
         }).catch(() => {});
     }

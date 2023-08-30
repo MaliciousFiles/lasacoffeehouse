@@ -45,4 +45,18 @@ function handleMessage(payload) {
 
 console.log("[SW] registering messages");
 self.addEventListener('message', evt => handleMessage(evt.data));
+self.addEventListener('activate', evt => console.log('activate', evt));
+self.addEventListener('error', evt => console.log('error', evt));
+self.addEventListener('fetch', evt => console.log('fetch', evt));
+self.addEventListener('install', evt => console.log('install', evt));
+self.addEventListener('message', evt => console.log('message', evt));
+self.addEventListener('messageerror', evt => console.log('messageerror', evt));
+self.addEventListener('notificationclick', evt => console.log('notificationclick', evt));
+self.addEventListener('notificationclose', evt => console.log('notificationclose', evt));
+self.addEventListener('offline', evt => console.log('offline', evt));
+self.addEventListener('online', evt => console.log('online', evt));
+self.addEventListener('push', evt => console.log('push', evt));
+self.addEventListener('pushsubscriptionchange', evt => console.log('pushsubscriptionchange', evt));
+self.addEventListener('rejectionhandled', evt => console.log('rejectionhandled', evt));
+self.addEventListener('unhandledrejection', evt => console.log('unhandledrejection', evt));
 messaging.onBackgroundMessage(handleMessage)
