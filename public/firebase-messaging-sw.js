@@ -1,20 +1,5 @@
 
 console.log("[SW] registering messages 1");
-self.addEventListener('message', evt => handleMessage(evt.data));
-self.addEventListener('activate', evt => console.log('activate 1', evt));
-self.addEventListener('error', evt => console.log('error 1', evt));
-self.addEventListener('fetch', evt => console.log('fetch 1', evt));
-self.addEventListener('install', evt => console.log('install 1', evt));
-self.addEventListener('message', evt => console.log('message 1', evt));
-self.addEventListener('messageerror', evt => console.log('messageerror 1', evt));
-self.addEventListener('notificationclick', evt => console.log('notificationclick 1', evt));
-self.addEventListener('notificationclose', evt => console.log('notificationclose 1', evt));
-self.addEventListener('offline', evt => console.log('offline 1', evt));
-self.addEventListener('online', evt => console.log('online 1', evt));
-self.addEventListener('push', evt => console.log('push 1', evt));
-self.addEventListener('pushsubscriptionchange', evt => console.log('pushsubscriptionchange 1', evt));
-self.addEventListener('rejectionhandled', evt => console.log('rejectionhandled 1', evt));
-self.addEventListener('unhandledrejection', evt => console.log('unhandledrejection 1', evt));
 
 importScripts('https://www.gstatic.com/firebasejs/10.3.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.3.0/firebase-messaging-compat.js');
