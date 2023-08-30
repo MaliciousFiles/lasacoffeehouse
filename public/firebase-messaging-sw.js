@@ -23,8 +23,9 @@ let notifsDB;
 })()
 
 function handleMessage(payload) {
-    const stage = "Main Stage";
-    const performers = ["Performer 1", "Performer 2"];
+    console.log("[SW] handleMessage ", payload);
+    const {stage} = payload.data;
+    const performers = [payload.data.current, payload.data.next];
 
     const store = notifsDB.transaction(stage, "readwrite").objectStore(stage);
 
@@ -32,7 +33,7 @@ function handleMessage(payload) {
         const performer = performers[i]
 
         store.count(performer).onsuccess = (evt) => {
-            console.log(stage.name+"/"+performer+" = "+evt.target.result);
+            console.log(stage+"/"+performer+" = "+evt.target.result);
             if (!evt.target.result) return;
 
             self.registration.showNotification(!i ? "Performing Now" : "Up Next", {
@@ -42,6 +43,5 @@ function handleMessage(payload) {
     }
 }
 
-messaging.onMessage(handleMessage)
-
+self.addEventListener('message', evt => handleMessage(evt.data));
 messaging.onBackgroundMessage(handleMessage)

@@ -5,6 +5,8 @@ import {getAuth} from "@firebase/auth";
 import {useState} from "react";
 import SignInPopup from "@/app/manage/SignInPopup";
 import {get, getDatabase, ref, remove, set} from "@firebase/database";
+import FCMManager from "@/app/manage/FCMManager";
+import updateClients from "@/app/manage/FCMManager";
 
 export default function ManagePerformers() {
     const [loggedIn, setLoggedIn] = useState(getAuth(firebase).currentUser !== null);
@@ -18,22 +20,12 @@ export default function ManagePerformers() {
                 const database = getDatabase(firebase);
 
                 set(ref(database, "/data/0/currentPerformer"), idx).then();
+                get(ref(database, "/data/0")).then(snapshot => {
+                    const data = snapshot.val()
 
-                get(ref(database, "/fcm")).then(payload => {
-                    const data = payload.val();
-
-                    for (let token in data) {
-                        let timestamp = parseInt(data[token]) || 0;
-
-                        if (Date.now() - timestamp > 24 * 60 * 60 * 1000) {
-                            remove(ref(database, `/fcm/${token}`)).then();
-                            continue;
-                        }
-
-                        console.log(token);
-                    }
+                    getAuth(firebase).currentUser?.getIdToken()
+                        .then(jwt => updateClients(jwt, data.name, data.performers[idx], data.performers[idx+1]).then());
                 })
-
             }}>Set Main Stage Performer Index</button>
         </div>
     )

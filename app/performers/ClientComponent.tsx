@@ -21,7 +21,7 @@ export default function ViewPerformers(props: {initialData: Stage[]}) {
     const [data, setData] = useState<Stage[]>(props.initialData);
 
     // TODO: associated with temp notification permission button
-    const [notifsEnabled, setNotifsEnabled] = useState(true);
+    const [notifsEnabled, setNotifsEnabled] = useState(false);
     useEffect(() => {
         setNotifsEnabled(Notification.permission == "granted");
     }, []);
@@ -49,7 +49,10 @@ export default function ViewPerformers(props: {initialData: Stage[]}) {
             })
 
         onMessage(messaging, (payload) => {
-            navigator.serviceWorker.controller?.postMessage(payload)
+            navigator.serviceWorker.getRegistration("/firebase-cloud-messaging-push-scope")
+                .then(registration => {
+                    registration?.active?.postMessage(payload)
+                })
         });
 
     }, [notifsEnabled]);
