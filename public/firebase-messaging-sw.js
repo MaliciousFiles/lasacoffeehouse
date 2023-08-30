@@ -41,6 +41,7 @@ function handleMessage(payload) {
             }).then();
         }
     }
+    self.registration.showNotification("Received Notification!").then();
 }
 
 console.log("[SW] registering messages");
