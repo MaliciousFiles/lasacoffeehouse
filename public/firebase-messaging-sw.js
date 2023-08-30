@@ -12,15 +12,15 @@ firebase.initializeApp({
     databaseURL: "https://lasacoffeehouse-74e2e-default-rtdb.firebaseio.com/"
 });
 const messaging = firebase.messaging();
-// let notifsDB;
-//
-// (() => {
-//     let request = indexedDB.open("notifications", 1);
-//
-//     request.onsuccess = (evt) => {
-//         notifsDB = evt.target.result;
-//     }
-// })()
+let notifsDB;
+
+(() => {
+    let request = indexedDB.open("notifications", 1);
+
+    request.onsuccess = (evt) => {
+        notifsDB = evt.target.result;
+    }
+})()
 //
 // function handleMessage(payload) {
 //     console.log("[SW] handleMessage ", payload);
@@ -62,6 +62,5 @@ const messaging = firebase.messaging();
 // self.addEventListener('unhandledrejection', evt => console.log('unhandledrejection', evt));
 // messaging.onBackgroundMessage(handleMessage)
 messaging.onBackgroundMessage((payload) => {
-    console.log("background message");
-    self.registration.showNotification("service worker", payload.notification).then();
+    self.registration.showNotification(payload.data.stage, payload.notification).then();
 })
