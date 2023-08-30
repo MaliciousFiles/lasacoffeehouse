@@ -60,7 +60,6 @@ export default function ViewPerformers(props: {initialData: {[index: string]: St
 
     }, [notifsEnabled]);
 
-    console.log(data);
     const stages = data.map(s=>s.name);
     const stage = data.at(selectedStage)?.name ?? "";
     const performers = data.at(selectedStage)?.performers ?? [""];
