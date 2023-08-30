@@ -15,10 +15,10 @@ type Stage = {
     currentPerformer: number
 }
 
-export default function ViewPerformers(props: {initialData: Stage[]}) {
+export default function ViewPerformers(props: {initialData: {[index: string]: Stage}}) {
     const [selectedStage, setStage] = useState(0);
     const [showPerformers, setShowPerformers] = useState(false);
-    const [data, setData] = useState<Stage[]>(props.initialData);
+    const [data, setData] = useState(Object.values(props.initialData));
 
     // TODO: associated with temp notification permission button
     const [notifsEnabled, setNotifsEnabled] = useState(false);
@@ -60,10 +60,11 @@ export default function ViewPerformers(props: {initialData: Stage[]}) {
 
     }, [notifsEnabled]);
 
-    const stages = data?.map(s=>s.name) ?? [];
-    const stage = data?.at(selectedStage)?.name ?? "";
-    const performers = data?.at(selectedStage)?.performers ?? [""];
-    const currentPerformer = data?.at(selectedStage)?.currentPerformer ?? 0;
+    console.log(data);
+    const stages = data.map(s=>s.name);
+    const stage = data.at(selectedStage)?.name ?? "";
+    const performers = data.at(selectedStage)?.performers ?? [""];
+    const currentPerformer = data.at(selectedStage)?.currentPerformer ?? 0;
 
     return (
         <div>
