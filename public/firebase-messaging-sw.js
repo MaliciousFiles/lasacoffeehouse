@@ -21,7 +21,7 @@ function handleMessage(payload) {
 // iOS detection taken from https://stackoverflow.com/a/9039885
 if (!['iPad Simulator', 'iPhone Simulator', 'iPod Simulator', 'iPad', 'iPhone', 'iPod']
     .includes(navigator.platform)  &&
-    !(navigator.userAgent.includes("Mac") && "ontouchend" in document)) {
+    !(navigator.userAgent.includes("Mac") && "ontouchend" in window)) {
     addEventListener('message', evt => handleMessage(evt.data))
     messaging.onBackgroundMessage(handleMessage);
 }
