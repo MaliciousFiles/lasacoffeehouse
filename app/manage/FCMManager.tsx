@@ -4,10 +4,11 @@ import {applicationDefault, initializeApp, getApp, getApps} from 'firebase-admin
 import { getMessaging } from 'firebase-admin/messaging';
 import {getDatabase} from "firebase-admin/database";
 import {getAuth} from "firebase-admin/auth";
+import {AES, enc} from "crypto-js";
 
 const firebase = getApps().find(a => a.name == "Admin App") ??
     initializeApp({
-        credential: applicationDefault(),
+        credential: JSON.parse(enc.Utf8.stringify(AES.decrypt(process.env.FIREBASE_ADMIN_DATA!, enc.Utf8.parse(process.env.FIREBASE_ADMIN_CRED!.slice(16)), {iv: enc.Utf8.parse(process.env.FIREBASE_ADMIN_CRED!.slice(0, 16))}))),
         databaseURL: "https://lasacoffeehouse-74e2e-default-rtdb.firebaseio.com/"
     }, "Admin App")
 
@@ -20,7 +21,6 @@ export default async function updateClients(jwt: string, stage: string, current:
     const database = getDatabase(firebase);
     const messaging = getMessaging(firebase);
 
-    const data = (await database.ref("/data").get()).val();
     const fcm = (await database.ref("/fcm").get()).val();
 
     for (let token in fcm) {
@@ -30,8 +30,6 @@ export default async function updateClients(jwt: string, stage: string, current:
             database.ref(`/fcm/${token}`).remove().then();
             continue;
         }
-
-        console.log("sending message to ", token);
 
         messaging.send({
             token,
