@@ -54,7 +54,7 @@ export default function SignInPopup(props: {logIn: ()=>void}) {
         <div className="w-full h-full bg-left" style={{backgroundImage: "url('/images/background.jpeg')"}}>
             <div className="absolute rounded-[20px] w-4/5 h-2/3 left-1/2 top-2/4 -translate-x-2/4 -translate-y-2/4 bg-white">
                 <div className="mt-3.5">
-                    <Image className="inline-block" src="/images/logo.png" height={30} width={30} alt="LASA logo"></Image>
+                    <Image className="inline-block" src="/images/logo.svg" height={27} width={27} alt="LASA logo"></Image>
                     <div className="ml-2 inline-block">
                         <p className="text-[#051324] inline-block font2 font-semibold">LASA&nbsp;</p>
                         <p className="text-[#0A2240] inline-block font2 font-[530]">Coffee</p>
