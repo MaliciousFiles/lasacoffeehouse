@@ -8,6 +8,7 @@ import firebase from "@/firebase/init";
 import {getMessaging, getToken, onMessage} from "@firebase/messaging";
 import {onBackgroundMessage} from "@firebase/messaging/sw";
 import {exists} from "fs";
+import SetupPopup from "@/app/performers/SetupPopup";
 
 type Stage = {
     name: string
@@ -22,27 +23,28 @@ export default function ViewPerformers(props: {initialData: {[index: string]: St
     const [notifsDB, setNotifsDB] = useState<IDBDatabase>();
     const [fbToken, setFbToken] = useState<string>();
 
+    const [notifsEnabled, setNotifsEnabled] = useState<boolean>();
+    // window won't exist till page loads
+    useEffect(() => {
+        setNotifsEnabled("Notification" in window && Notification.permission == "granted");
+    }, [])
+
     // init `notifsDB`
     useEffect(() =>{
-        let request = indexedDB.open("notifications", 1);
+        let request = indexedDB.open("notifications");
         request.onupgradeneeded = evt => {
-            const db = (evt.target! as IDBOpenDBRequest).result;
-            const stage = data[selectedStage].name;
+            for (let {name} of data) {
+                const db = (evt.target! as IDBOpenDBRequest).result;
 
-            if (db.objectStoreNames.contains(stage)) db.deleteObjectStore(stage);
-            db.createObjectStore(stage, {keyPath: "performer"});
+                if (db.objectStoreNames.contains(name)) db.deleteObjectStore(name);
+                db.createObjectStore(name, {keyPath: "performer"});
+            }
         }
 
         request.onsuccess = (evt) => {
             setNotifsDB((evt.target as IDBOpenDBRequest).result);
         }
     }, [selectedStage]);
-
-    // TODO: associated with temp notification permission button
-    const [notifsEnabled, setNotifsEnabled] = useState(false);
-    useEffect(() => {
-        setNotifsEnabled(Notification.permission == "granted");
-    }, []);
 
     // init Firebase and service worker
     useEffect(() => {
@@ -90,12 +92,6 @@ export default function ViewPerformers(props: {initialData: {[index: string]: St
                 <div className="w-[95%] h-0.5 m-auto" style={{background: "linear-gradient(to right, #00000000 10%, #5e6b7c, #00000000 90%)"}}></div>
             </div>
 
-            {!notifsEnabled && <button className={"p-3 bg-indigo-950 mt-10 text-blue-200 rounded-3xl text-sm font-bold"} onClick={(evt) => {
-                Notification.requestPermission().then(permission => {
-                    setNotifsEnabled(permission == 'granted')
-                })
-            }}>Enable Notifications</button>}
-
             <div className="inline-block mt-[3rem] text-center">
                 <div className="Names whitespace-nowrap w-screen overflow-x-hidden scroll-smooth relative">
                     {stages.map(s =>
@@ -123,7 +119,9 @@ export default function ViewPerformers(props: {initialData: {[index: string]: St
                     </div>, <span key={`span${i}`} className="mx-[15px] my-0"></span>]))
                 .slice(0, -1)}
             </div>
+
             <PerformerPopup show={showPerformers} notifsDB={notifsDB} fbToken={fbToken} performers={performers} currentPerformer={currentPerformer} currentStage={stage} close={()=>setShowPerformers(false)}></PerformerPopup>
+            <SetupPopup show={notifsEnabled === false} />
         </div>
     )
 }
