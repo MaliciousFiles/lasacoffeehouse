@@ -1,4 +1,5 @@
 import {initializeApp} from "@firebase/app";
+import {get, getDatabase, ref} from "@firebase/database";
 
 const firebase = initializeApp({
     apiKey: "AIzaSyBkKKxUvn9taDY1ZuRGCZOCl7t-qd5JML0",
@@ -10,5 +11,10 @@ const firebase = initializeApp({
     measurementId: "G-0PZJ153E97",
     databaseURL: "https://lasacoffeehouse-74e2e-default-rtdb.firebaseio.com/"
 });
-
 export default firebase;
+
+export type Stage = {
+    name: string
+    performers: string[]
+    currentPerformer: number
+}
