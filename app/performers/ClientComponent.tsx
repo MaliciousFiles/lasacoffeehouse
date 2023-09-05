@@ -3,12 +3,10 @@
 import React, {useEffect, useState} from "react";
 import PerformerPopup from "@/app/performers/PerformerPopup";
 import {AiOutlineUnorderedList} from "react-icons/ai";
-import {get, getDatabase, onValue, ref, remove, set} from "@firebase/database";
+import {getDatabase, onValue, ref, set} from "@firebase/database";
 import firebase from "@/firebase/init";
 import {getMessaging, getToken, onMessage} from "@firebase/messaging";
-import {onBackgroundMessage} from "@firebase/messaging/sw";
-import {exists} from "fs";
-import SetupPopup from "@/app/performers/SetupPopup";
+import SetupPopup, {SetupStage} from "@/app/performers/SetupPopup";
 
 type Stage = {
     name: string
@@ -23,12 +21,19 @@ export default function ViewPerformers(props: {initialData: {[index: string]: St
     const [notifsDB, setNotifsDB] = useState<IDBDatabase>();
     const [fbToken, setFbToken] = useState<string>();
 
-    const [notifsStatus, setNotifsStatus] = useState<NotificationPermission>('default');
+    const [setupStage, setSetupStage] = useState<SetupStage>();
     // window won't exist till page loads
     useEffect(() => {
         new Promise(resolve => setTimeout(resolve, 50))
             .then(() => {
-                "Notification" in window && setNotifsStatus(Notification.permission);
+                let iOS = ['iPad Simulator', 'iPhone Simulator', 'iPod Simulator', 'iPad', 'iPhone', 'iPod'].includes(navigator.platform);
+                let notifExists = "Notification" in window
+                let pwa = window.matchMedia('(display-mode: standalone)').matches
+
+                setSetupStage(Notification.permission === 'granted' ? SetupStage.NONE : iOS && !notifExists ? SetupStage.OPEN_SAFARI :
+                    iOS && !pwa ? SetupStage.DOWNLOAD_PWA :
+                        Notification.permission === 'denied' ? SetupStage.NOTIFS_DENIED :
+                            SetupStage.ENABLE_NOTIFS);
             });
     }, [])
 
@@ -59,7 +64,7 @@ export default function ViewPerformers(props: {initialData: {[index: string]: St
     }, [])
 
     useEffect(() => {
-        if (notifsStatus !== 'granted') return;
+        if (setupStage === undefined || setupStage !== SetupStage.NONE) return;
 
         const messaging = getMessaging(firebase);
         const database = getDatabase(firebase);
@@ -81,7 +86,7 @@ export default function ViewPerformers(props: {initialData: {[index: string]: St
                 })
         });
 
-    }, [notifsStatus]);
+    }, [setupStage]);
 
     const stages = data.map(s=>s.name);
     const stage = data.at(selectedStage)?.name ?? "";
@@ -124,7 +129,7 @@ export default function ViewPerformers(props: {initialData: {[index: string]: St
             </div>
 
             <PerformerPopup show={showPerformers} notifsDB={notifsDB} fbToken={fbToken} performers={performers} currentPerformer={currentPerformer} currentStage={stage} close={()=>setShowPerformers(false)}></PerformerPopup>
-            <SetupPopup show={notifsStatus !== 'granted'} setNotifsStatus={setNotifsStatus} />
+            <SetupPopup stage={setupStage} setNotifsStatus={(perm) => {setSetupStage(perm === 'granted' ? SetupStage.NONE : perm === 'denied' ? SetupStage.NOTIFS_DENIED : SetupStage.ENABLE_NOTIFS)}} />
         </div>
     )
 }
