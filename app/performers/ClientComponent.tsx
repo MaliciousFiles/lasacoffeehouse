@@ -23,10 +23,13 @@ export default function ViewPerformers(props: {initialData: {[index: string]: St
     const [notifsDB, setNotifsDB] = useState<IDBDatabase>();
     const [fbToken, setFbToken] = useState<string>();
 
-    const [notifsEnabled, setNotifsEnabled] = useState<boolean>();
+    const [notifsStatus, setNotifsStatus] = useState<NotificationPermission>('default');
     // window won't exist till page loads
     useEffect(() => {
-        setNotifsEnabled("Notification" in window && Notification.permission == "granted");
+        new Promise(resolve => setTimeout(resolve, 50))
+            .then(() => {
+                "Notification" in window && setNotifsStatus(Notification.permission);
+            });
     }, [])
 
     // init `notifsDB`
@@ -56,7 +59,7 @@ export default function ViewPerformers(props: {initialData: {[index: string]: St
     }, [])
 
     useEffect(() => {
-        if (!notifsEnabled) return;
+        if (notifsStatus !== 'granted') return;
 
         const messaging = getMessaging(firebase);
         const database = getDatabase(firebase);
@@ -78,7 +81,7 @@ export default function ViewPerformers(props: {initialData: {[index: string]: St
                 })
         });
 
-    }, [notifsEnabled]);
+    }, [notifsStatus]);
 
     const stages = data.map(s=>s.name);
     const stage = data.at(selectedStage)?.name ?? "";
@@ -121,7 +124,7 @@ export default function ViewPerformers(props: {initialData: {[index: string]: St
             </div>
 
             <PerformerPopup show={showPerformers} notifsDB={notifsDB} fbToken={fbToken} performers={performers} currentPerformer={currentPerformer} currentStage={stage} close={()=>setShowPerformers(false)}></PerformerPopup>
-            <SetupPopup show={notifsEnabled === false} />
+            <SetupPopup show={notifsStatus !== 'granted'} setNotifsStatus={setNotifsStatus} />
         </div>
     )
 }
