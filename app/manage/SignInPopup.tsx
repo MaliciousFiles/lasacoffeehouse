@@ -4,7 +4,7 @@ import Image from "next/image";
 import React, {useRef, useState} from "react";
 import {AiOutlineWarning} from "react-icons/ai";
 import {getAuth, signInWithEmailAndPassword} from "@firebase/auth";
-import firebase from "@/firebase/init";
+import firebase from "@/app/util/firebase/init";
 
 export default function SignInPopup(props: {logIn: ()=>void}) {
     const [error, setError] = useState<string>();

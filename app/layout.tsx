@@ -1,9 +1,9 @@
 import './globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import firebase from '@/firebase/init'
+import firebase from '@/app/util/firebase/init'
 import {getDatabase, ref, get} from "@firebase/database";
-import FirebaseComponent from "@/firebase/FirebaseComponent";
+import FirebaseComponent from "@/app/util/firebase/FirebaseComponent";
 
 export const metadata: Metadata = {
     title: 'LASA Coffeehouse',
@@ -20,7 +20,7 @@ export default async function RootLayout({
     return (
         <html lang="en" className={"w-full h-full"}>
         <FirebaseComponent initialData={(await get(ref(getDatabase(firebase), "/data"))).val()}>
-            <body className={"w-full h-full " + inter.className}>{children}</body>
+            <body className={"w-full h-full overflow-hidden " + inter.className}>{children}</body>
         </FirebaseComponent>
         </html>
     )

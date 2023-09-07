@@ -4,10 +4,10 @@ import React, {useContext, useEffect, useState} from "react";
 import PerformerPopup from "@/app/performers/PerformerPopup";
 import {AiOutlineUnorderedList} from "react-icons/ai";
 import {getDatabase, onValue, ref, set} from "@firebase/database";
-import firebase, {Stage} from "@/firebase/init";
+import firebase, {Stage} from "@/app/util/firebase/init";
 import {getMessaging, getToken, onMessage} from "@firebase/messaging";
 import SetupPopup, {SetupStage} from "@/app/performers/SetupPopup";
-import FirebaseContext from "@/firebase/FirebaseContext";
+import FirebaseContext from "@/app/util/firebase/FirebaseContext";
 
 export default function ViewPerformers(props: {initialData: {[index: string]: Stage}}) {
     const [selectedStage, setStage] = useState(0);

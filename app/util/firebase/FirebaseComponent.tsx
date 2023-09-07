@@ -1,9 +1,9 @@
 "use client"
 
 import React, {ReactNode, useEffect, useState} from "react";
-import firebase, {Stage} from "@/firebase/init";
+import firebase, {Stage} from "@/app/util/firebase/init";
 import {getDatabase, onValue, ref} from "@firebase/database";
-import FirebaseContext from "@/firebase/FirebaseContext";
+import FirebaseContext from "@/app/util/firebase/FirebaseContext";
 
 export default function FirebaseComponent(props: {initialData: {[index: string]: Stage}, children: ReactNode}) {
     const [data, setData] = useState<{[index: string]: Stage}>(props.initialData);

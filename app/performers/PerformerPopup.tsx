@@ -1,7 +1,7 @@
 import React, {useContext, useEffect, useState} from "react";
 import {FaBell, FaRegBell} from "react-icons/fa";
 import {getDatabase, ref, set} from "@firebase/database";
-import firebase from "@/firebase/init";
+import firebase from "@/app/util/firebase/init";
 
 export default function PerformerPopup(props: {
     show: boolean, notifsDB?: IDBDatabase, fbToken?: string, performers: string[], currentPerformer: number, currentStage: string, close: () => void
