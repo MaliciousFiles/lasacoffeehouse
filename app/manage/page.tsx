@@ -67,21 +67,20 @@ export default function ManagePerformers() {
     const newPerformers = useRef([] as number[]);
 
     const swapPerformers = (parent: HTMLElement, idx1: number, idx2: number) => {
-        const temp = document.createElement("div");
-        const child1 = parent.childNodes[idx1 * 2];
-        const child2 = parent.childNodes[idx2 * 2];
+        if (idx2 == -1) return;
 
-        parent.insertBefore(temp, child1);
+        const marker = document.createElement("div");
+        const child1 = parent.childNodes[newPerformers.current[idx1] * 2];
+        const child2 = parent.childNodes[newPerformers.current[idx2] * 2];
+
+        parent.insertBefore(marker, child1);
         parent.insertBefore(child1, child2);
-        parent.insertBefore(child2, temp);
-        parent.removeChild(temp);
+        parent.insertBefore(child2, marker);
+        parent.removeChild(marker);
 
-        const realIdx1 = newPerformers.current[idx1];
-        const realIdx2 = newPerformers.current[idx2];
-
-        const temp2 = newPerformers.current[realIdx1];
-        newPerformers.current[realIdx1] = newPerformers.current[realIdx2];
-        newPerformers.current[realIdx2] = temp2;
+        const temp = newPerformers.current[idx1];
+        newPerformers.current[idx1] = newPerformers.current[idx2];
+        newPerformers.current[idx2] = temp;
     }
 
     const startDrag = (idx: number, touchEvt?: React.TouchEvent<HTMLDivElement>, mouseEvt?: React.MouseEvent<HTMLDivElement>) => {
@@ -95,9 +94,9 @@ export default function ManagePerformers() {
         row.style.width = row.offsetWidth+'px';
     }
     const drag = (idx: number, touchEvt?: React.TouchEvent<HTMLDivElement>, mouseEvt?: React.MouseEvent<HTMLDivElement>) => {
-        if (dragging === -1) setDragging(idx);
+        const currentIdx = newPerformers.current[idx];
 
-        console.log('drag', idx);
+        if (dragging === -1) setDragging(currentIdx);
 
         let row = ((touchEvt || mouseEvt)!.target as HTMLElement);
         while (!row.classList.contains('table')) row = row.parentElement!;
@@ -108,12 +107,10 @@ export default function ManagePerformers() {
         row.style.left = (pos.clientX - (svgOffset.current.x))+'px';
         row.style.top = top+'px';
 
-        if (idx > 0 && top + row.offsetHeight < row.parentElement!.offsetTop) {
-            swapPerformers(performersContainer.current!, idx, idx-1);
-            console.log('move down', newPerformers.current);
-        } else if (idx < data[stage].performers.length && top > row.parentElement!.offsetTop + row.parentElement!.offsetHeight) {
-            swapPerformers(performersContainer.current!, idx, idx+1);
-            console.log('move up', newPerformers.current);
+        if (currentIdx > 0 && top + row.offsetHeight < row.parentElement!.offsetTop) {
+            swapPerformers(performersContainer.current!, idx, newPerformers.current.indexOf(currentIdx-1));
+        } else if (currentIdx < data[stage].performers.length && top > row.parentElement!.offsetTop + row.parentElement!.offsetHeight) {
+            swapPerformers(performersContainer.current!, idx, newPerformers.current.indexOf(currentIdx+1));
         }
     }
     const stopDrag = (evt: React.UIEvent) => {
@@ -125,10 +122,6 @@ export default function ManagePerformers() {
             .then(jwt => reorderPerformers(jwt, stage, performers));
         setDragging(-1);
 
-        // TODO: make another element that is always the dragged one, and is invisible until something is dragged
-        // TODO: then set the opacity of the list item to 0 so it takes up space but doesn't show, and then reset when dropped
-
-        console.log('reset values');
         row.style.left = row.style.top = row.style.width = '';
         newPerformers.current = [];
         svgOffset.current = {x: 0, y: 0};
@@ -148,8 +141,8 @@ export default function ManagePerformers() {
                             <div className={"table" + (i === dragging ? " absolute bg-gray-200 rounded-2xl drop-shadow-lg z-10" : "")}>
                                 <div className="table-cell whitespace-nowrap">
                                     <div
-                                        onTouchMove={(evt) => drag(newPerformers.current[i], evt)}
-                                        onMouseMove={(evt) => drag(newPerformers.current[i], undefined, evt)}
+                                        onTouchMove={(evt) => drag(i, evt)}
+                                        onMouseMove={(evt) => drag(i, undefined, evt)}
                                         onTouchStart={(evt)=>startDrag(i, evt)}
                                         onMouseDown={(evt)=>startDrag(i, undefined, evt)}
                                         onTouchEnd={stopDrag}
