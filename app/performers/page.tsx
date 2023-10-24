@@ -9,7 +9,7 @@ import {getMessaging, getToken, onMessage} from "@firebase/messaging";
 import SetupPopup, {SetupStage} from "@/app/performers/SetupPopup";
 import FirebaseContext from "@/app/util/firebase/FirebaseContext";
 
-export default function ViewPerformers(props: {initialData: {[index: string]: Stage}}) {
+export default function ViewPerformers() {
     const [selectedStage, setStage] = useState(0);
     const [showPerformers, setShowPerformers] = useState(false);
     const [notifsDB, setNotifsDB] = useState<IDBDatabase>();
