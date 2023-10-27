@@ -7,10 +7,7 @@ import SignInPopup from "@/app/manage/SignInPopup";
 import FirebaseContext from "@/app/util/firebase/FirebaseContext";
 import Dropdown from "@/app/util/Dropdown";
 import {RiDraggable} from "react-icons/ri";
-import {RxDragHandleDots1, RxDragHandleDots2, RxDragHandleVertical} from "react-icons/rx";
-import {FiCheck, FiEdit, FiEdit2, FiTrash2, FiX} from "react-icons/fi";
-import {GrEdit} from "react-icons/gr";
-import {getDatabase, ref, remove, set} from "@firebase/database";
+import {FiCheck, FiEdit2, FiTrash2, FiX} from "react-icons/fi";
 import {removePerformer, renamePerformer, reorderPerformers} from "@/app/manage/FCMManager";
 
 export default function ManagePerformers() {
@@ -87,6 +84,8 @@ export default function ManagePerformers() {
     }
 
     const startDrag = (idx: number, touchEvt?: React.TouchEvent<HTMLDivElement>, mouseEvt?: React.MouseEvent<HTMLDivElement>) => {
+        navigator.vibrate && navigator.vibrate(100);
+
         let row = ((touchEvt || mouseEvt)!.target as HTMLElement);
         while (!row.classList.contains('table')) row = row.parentElement!;
 
@@ -126,10 +125,10 @@ export default function ManagePerformers() {
                 (async () => {
                     const container = performersContainer.current!;
                     while (scrollBy.current != 0) {
-                        container.scrollBy({top:scrollBy.current,behavior:"smooth"});
+                        container.scrollBy({top:scrollBy.current, behavior: "instant"});
                         checkRowMove(row, idx);
 
-                        await new Promise(r => setTimeout(r, 50));
+                        await new Promise(r => setTimeout(r, 1));
                     }
                 })();
             }
@@ -140,9 +139,9 @@ export default function ManagePerformers() {
 
         let bottom = top + row.offsetHeight;
         if (containerBottom-bottom < 10) {
-            setScroll(10);
+            setScroll(1);
         } else if (top-containerTop < 10) {
-            setScroll(-10);
+            setScroll(-1);
         } else {
             setScroll(0);
         }
@@ -150,16 +149,18 @@ export default function ManagePerformers() {
         checkRowMove(row, idx);
     }
     const stopDrag = (evt: React.UIEvent) => {
+
         let row = (evt.target as HTMLElement);
         while (!row.classList.contains('table')) row = row.parentElement!;
 
-        const performers = performerPositions.current
-            .reduce((arr, performer, idx) => {arr[performer] = idx; return arr;}, [] as number[]) // invert
-            .map(i => data[stage].performers[i]);
-
-        getAuth(firebase).currentUser?.getIdToken()
-            .then(jwt => reorderPerformers(jwt, stage, performers));
-        setDragging(-1);
+        if (performerPositions.current.length) {
+            const performers = performerPositions.current
+                .reduce((arr, performer, idx) => {arr[performer] = idx; return arr;}, [] as number[]) // invert
+                .map(i => data[stage].performers[i]);
+            getAuth(firebase).currentUser?.getIdToken()
+                .then(jwt => reorderPerformers(jwt, stage, performers));
+            setDragging(-1);
+        }
 
         scrollBy.current = 0;
         row.style.left = row.style.top = row.style.width = '';
