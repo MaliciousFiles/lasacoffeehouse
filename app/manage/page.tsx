@@ -7,8 +7,9 @@ import SignInPopup from "@/app/manage/SignInPopup";
 import FirebaseContext from "@/app/util/firebase/FirebaseContext";
 import Dropdown from "@/app/util/Dropdown";
 import {RiDraggable} from "react-icons/ri";
-import {FiCheck, FiEdit2, FiTrash2, FiX} from "react-icons/fi";
+import {FiCheck, FiEdit2, FiPlus, FiTrash2, FiX} from "react-icons/fi";
 import {removePerformer, renamePerformer, reorderPerformers} from "@/app/manage/FCMManager";
+import AddPerformer from "@/app/manage/AddPerformer";
 
 export default function ManagePerformers() {
     const data = useContext(FirebaseContext);
@@ -58,13 +59,14 @@ export default function ManagePerformers() {
         }
     };
 
+    const [addingPerformer, setAddingPerformer] = useState(-1);
+
     const [dragging, setDragging] = useState(-1);
     const performersContainer = useRef<HTMLDivElement>(null);
     const svgOffset = useRef({x: 0, y: 0});
     const performerPositions = useRef<number[]>([]);
 
     const scrollBy = useRef(0);
-    // const scrollTask: Promise = null;
 
     const movePerformer = (parent: HTMLElement, idx: number, direction: 1 | -1) => {
         let pos = performerPositions.current[idx]
@@ -174,6 +176,15 @@ export default function ManagePerformers() {
 
             <Dropdown options={Object.keys(data)} onValueChanged={val => setStage(val)} />
 
+            <AddPerformer addingPerformer={addingPerformer} cancel={()=>setAddingPerformer(-1)} add={(name: string) => {
+                getAuth(firebase).currentUser?.getIdToken()
+                    .then(jwt => reorderPerformers(jwt, stage, [
+                        ...data[stage].performers.slice(0, addingPerformer),
+                        name,
+                        ...data[stage].performers.slice(addingPerformer)
+                    ]));
+            }}/>
+
             <div ref={performersContainer} className={"shadow-inner mt-10 text-left bg-gray-200 h-3/5 overflow-y-auto w-4/5 m-auto rounded-2xl" + (dragging === -1 ? "" : " touch-none")}>
                 {([] as any[]).concat(...data[stage].performers.map((p, i) =>
                     [
@@ -191,7 +202,7 @@ export default function ManagePerformers() {
                                         className={"ml-2 inline-block translate-y-0.5 touch-none"}><RiDraggable /></div>
                                     <p
                                         id={"name"+i}
-                                        className={"selectml-3 outline-0 inline-block p-3" + (editingName === i ? " bg-gray-300 rounded-xl" : "")}
+                                        className={"my-2 outline-0 inline-block p-3" + (editingName === i ? " bg-gray-300 rounded-xl" : "")}
                                         contentEditable={editingName === i}
                                         onBlur={editingName === i ? () => {new Promise(async () => {
                                             await new Promise((r) => setTimeout(r, 1));
@@ -221,7 +232,12 @@ export default function ManagePerformers() {
                                 </div>
                             </div>
                         </div>,
-                        <div className={"bg-neutral-400 w-full h-px m-auto"} key={"s"+i}/>
+                        <div className={"w-full flex"} key={"s"+i}>
+                                <div className={"bg-neutral-400 inline-block w-1/3 h-px m-auto"} />
+                            <button className={"bg-blue-300 inline-block text-blue-100 rounded-lg p-1"}
+                                    onClick={() => setAddingPerformer(i+1)}><FiPlus /></button>
+                            <div className={"bg-neutral-400 inline-block w-1/3 h-px m-auto"} />
+                        </div>
                     ])).slice(0, -1)}
             </div>
         </div>

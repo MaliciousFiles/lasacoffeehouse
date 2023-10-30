@@ -71,7 +71,7 @@ export default function SignInPopup(props: {logIn: ()=>void}) {
                     <span className="inline-block mt-0 mb-2">&nbsp;{error}</span>
                 </div>
                 <div className="mt-8 w-full">
-                    <input ref={usernameRef} className="bg-gray-100 rounded-md py-2 px-3 w-3/4" placeholder="Username"></input>
+                    <input ref={usernameRef} autoCapitalize={"off"} autoCorrect={"off"} className="bg-gray-100 rounded-md py-2 px-3 w-3/4" placeholder="Username"></input>
                     <input ref={passwordRef} type="password" className="bg-gray-100 rounded-md mt-5 py-2 px-3 w-3/4" placeholder="Password"></input>
                     <br />
                     <button onClick={tryLogIn} className={`rounded-[0.4rem] bg-[#0A2240] text-blue-50 py-1 mt-5 w-[calc(75%-2rem)]`}>Log In</button>
