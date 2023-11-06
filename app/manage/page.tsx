@@ -30,6 +30,7 @@ export default function ManagePerformers() {
         if (firebaseLoading) {
             let current = data[stage].currentPerformer;
             let performers = data[stage].performers;
+
             updateFirebase(jwt => updateClients(jwt, stage, performers[current], performers[current+1]), false);
         }
 

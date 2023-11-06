@@ -57,8 +57,6 @@ export async function updateClients(jwt: string, stage: string, current: string,
 
     const fcm = (await database.ref("/fcm").get()).val();
 
-    console.log(stage, current, next);
-
     for (let token in fcm) {
         let timestamp = parseInt(fcm[token]['last_used']) || 0;
 

@@ -3,6 +3,8 @@ import {FaBell, FaRegBell} from "react-icons/fa";
 import {getDatabase, ref, set} from "@firebase/database";
 import firebase from "@/app/util/firebase/init";
 
+// TODO: either don't store notif based on performer name,
+//  fix stored notif name if performer name is edited, or give performers a UID
 export default function PerformerPopup(props: {
     show: boolean, notifsDB?: IDBDatabase, fbToken?: string, performers: string[], currentPerformer: number, currentStage: string, close: () => void
 }) {
