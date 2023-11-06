@@ -3,7 +3,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import Image from "next/image";
 
-export default function AddPerformer(props: {addingPerformer: number, cancel: ()=>void, add: (name: string)=>void}) {
+export default function AddPerformerPopup(props: {addingPerformer: number, cancel: ()=>void, add: (name: string)=>void}) {
     const {addingPerformer} = props;
 
     const nameRef = useRef<HTMLInputElement>(null);

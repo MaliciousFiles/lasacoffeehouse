@@ -20,7 +20,7 @@ export default function Dropdown(props: {options: string[], onValueChanged?: (va
                 {([] as any[]).concat(...options.map((o,i) => [
                     <p className={`${selected === i ? 'text-gray-400' : 'text-gray-800'} b-0.5`} key={o+i} onClick={()=>{setSelected(i); onValueChanged?.call(null, options[i]); setOpen(false);}}>{o}</p>,
                     <div key={"spacer"+i} className={"bg-slate-300 w-[90%] h-px m-auto"} />
-                ])).slice(0, -1)}
+                ])).slice(0,-1)}
             </div>
         </div>
     )

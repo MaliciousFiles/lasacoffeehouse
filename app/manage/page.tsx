@@ -3,16 +3,44 @@
 import firebase from "@/app/util/firebase/init";
 import {getAuth} from "@firebase/auth";
 import React, {useContext, useEffect, useRef, useState} from "react";
-import SignInPopup from "@/app/manage/SignInPopup";
+import SignInPage from "@/app/manage/SignInPage";
 import FirebaseContext from "@/app/util/firebase/FirebaseContext";
 import Dropdown from "@/app/util/Dropdown";
 import {RiDraggable} from "react-icons/ri";
 import {FiCheck, FiEdit2, FiPlus, FiTrash2, FiX} from "react-icons/fi";
-import {removePerformer, renamePerformer, reorderPerformers} from "@/app/manage/FCMManager";
-import AddPerformer from "@/app/manage/AddPerformer";
+import {
+    removePerformer,
+    renamePerformer,
+    setCurrentPerformer,
+    updateClients,
+    updatePerformers
+} from "@/app/manage/FCMManager";
+import AddPerformerPopup from "@/app/manage/AddPerformerPopup";
+import SetCurrentPerformer from "@/app/manage/SetCurrentPerformer";
+import scrollIntoView from "scroll-into-view-if-needed";
+import Loading from "@/app/util/Loading";
 
 export default function ManagePerformers() {
     const data = useContext(FirebaseContext);
+
+    const [firebaseLoading, setFirebaseLoading] = useState(false);
+
+    useEffect(() => {
+        setFirebaseLoading(false);
+    }, [data]);
+
+    const updateFirebase = (func: (jwt: string)=>Promise<void>) => {
+        setFirebaseLoading(true);
+
+        getAuth(firebase).currentUser?.getIdToken()
+            .then(async (jwt) => {
+                await func(jwt);
+
+                let current = data[stage].currentPerformer;
+                let performers = data[stage].performers;
+                await updateClients(jwt, stage, performers[current], performers[current+1]);
+            });
+    }
 
     const [loggedIn, setLoggedIn] = useState(getAuth(firebase).currentUser !== null);
     const [stage, setStage] = useState(Object.keys(data)[0]);
@@ -41,8 +69,7 @@ export default function ManagePerformers() {
 
             if (name) {
                 if (value) {
-                    getAuth(firebase).currentUser?.getIdToken()
-                        .then(jwt => renamePerformer(jwt, stage, editingName, name.textContent!));
+                    updateFirebase((jwt => renamePerformer(jwt, stage, editingName, name.textContent!)));
                 } else {
                     name.textContent = origName;
                 }
@@ -51,8 +78,7 @@ export default function ManagePerformers() {
             setEditingName(-1);
         } else if (removingPerformer !== -1) {
             if (value) {
-                getAuth(firebase).currentUser?.getIdToken()
-                    .then(jwt => removePerformer(jwt, stage, data[stage].performers, removingPerformer));
+                updateFirebase(jwt => removePerformer(jwt, stage, data[stage].performers, removingPerformer));
             }
 
             setRemovingPerformer(-1);
@@ -159,8 +185,7 @@ export default function ManagePerformers() {
             const performers = performerPositions.current
                 .reduce((arr, performer, idx) => {arr[performer] = idx; return arr;}, [] as number[]) // invert
                 .map(i => data[stage].performers[i]);
-            getAuth(firebase).currentUser?.getIdToken()
-                .then(jwt => reorderPerformers(jwt, stage, performers));
+            updateFirebase(jwt => updatePerformers(jwt, stage, performers));
             setDragging(-1);
         }
 
@@ -170,22 +195,39 @@ export default function ManagePerformers() {
         svgOffset.current = {x: 0, y: 0};
     }
 
-    return !loggedIn ? <SignInPopup logIn={()=>setLoggedIn(true)} /> : (
+    const scroll = (ifNeeded: boolean) => {
+        if (!performersContainer.current || !performersContainer.current?.childNodes) return;
+
+        scrollIntoView(performersContainer.current.childNodes[data[stage].currentPerformer*2] as Element, {
+            behavior: 'smooth',
+            scrollMode: ifNeeded ? 'if-needed' : 'always'
+        })
+    }
+
+    // scroll to current performer if necessary when data changes
+    useEffect(() => scroll(true), [data]);
+    useEffect(() => scroll(false), [stage]);
+    useEffect(() => scroll(false), []);
+
+    return !loggedIn ? <SignInPage logIn={()=>setLoggedIn(true)} /> : (
         <div className="h-full w-full">
-            <p className="text-center text-2xl">Manager Dashboard</p>
+            <Loading enabled={firebaseLoading} />
 
-            <Dropdown options={Object.keys(data)} onValueChanged={val => setStage(val)} />
+            <p className="text-center text-2xl m-0 py-2">Manager Dashboard</p>
 
-            <AddPerformer addingPerformer={addingPerformer} cancel={()=>setAddingPerformer(-1)} add={(name: string) => {
-                getAuth(firebase).currentUser?.getIdToken()
-                    .then(jwt => reorderPerformers(jwt, stage, [
+            <Dropdown options={Object.keys(data)} onValueChanged={stage => setStage(stage)} />
+            <SetCurrentPerformer performers={data[stage].performers} performer={data[stage].currentPerformer} setPerformer={(p: number) => {
+                updateFirebase(jwt => setCurrentPerformer(jwt, stage, p));
+            }} />
+
+            <AddPerformerPopup addingPerformer={addingPerformer} cancel={()=>setAddingPerformer(-1)} add={(name: string) => {
+                updateFirebase(jwt => updatePerformers(jwt, stage, [
                         ...data[stage].performers.slice(0, addingPerformer),
                         name,
                         ...data[stage].performers.slice(addingPerformer)
                     ]));
             }}/>
-
-            <div ref={performersContainer} className={"shadow-inner mt-10 text-left bg-gray-200 h-3/5 overflow-y-auto w-4/5 m-auto rounded-2xl" + (dragging === -1 ? "" : " touch-none")}>
+            <div ref={performersContainer} className={"shadow-inner mt-5 text-left bg-gray-200 h-3/5 overflow-y-auto w-4/5 m-auto rounded-2xl" + (dragging === -1 ? "" : " touch-none")}>
                 {([] as any[]).concat(...data[stage].performers.map((p, i) =>
                     [
                         <div key={p+i} >
@@ -202,7 +244,7 @@ export default function ManagePerformers() {
                                         className={"ml-2 inline-block translate-y-0.5 touch-none"}><RiDraggable /></div>
                                     <p
                                         id={"name"+i}
-                                        className={"my-2 outline-0 inline-block p-3" + (editingName === i ? " bg-gray-300 rounded-xl" : "")}
+                                        className={"my-2 outline-0 inline-block p-3" + (editingName === i ? " bg-gray-300 rounded-xl" : "") + (data[stage].currentPerformer === i ? " font-semibold" : "")}
                                         contentEditable={editingName === i}
                                         onBlur={editingName === i ? () => {new Promise(async () => {
                                             await new Promise((r) => setTimeout(r, 1));

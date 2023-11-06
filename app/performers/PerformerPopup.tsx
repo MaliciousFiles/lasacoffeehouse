@@ -67,7 +67,7 @@ export default function PerformerPopup(props: {
                                     {performer}
                                 </p>
                             </div>, <div key={`2${i}`} className="flex bg-[#cbcbcb] w-[90%] h-px m-auto"></div>]
-                        )).slice(0, -1)}
+                        )).slice(0,-1)}
                     </div>
                 </div>
             </div>

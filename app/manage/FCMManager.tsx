@@ -12,35 +12,38 @@ const firebase = getApps().find(a => a.name == "Admin App") ??
         databaseURL: "https://lasacoffeehouse-74e2e-default-rtdb.firebaseio.com/"
     }, "Admin App")
 
-export async function reorderPerformers(jwt: string, stage: string, performers: string[]) {
+async function isInvalid(jwt: string) {
     // TODO: some sort of logging on failure?
     try {
         await getAuth(firebase).verifyIdToken(jwt, true);
-    } catch { return; }
+    } catch { return true; }
 
+    return false;
+}
+
+export async function setCurrentPerformer(jwt: string, stage: string, performer: number) {
+    if (await isInvalid(jwt)) return;
+    const database = getDatabase(firebase);
+
+    await database.ref(`/data/${stage}/currentPerformer`).set(performer);
+}
+
+export async function updatePerformers(jwt: string, stage: string, performers: string[]) {
+    if (await isInvalid(jwt)) return;
     const database = getDatabase(firebase);
 
     await database.ref(`/data/${stage}/performers`).set(performers);
-
 }
 
 export async function renamePerformer(jwt: string, stage: string, performer: number, name: string) {
-    // TODO: some sort of logging on failure?
-    try {
-        await getAuth(firebase).verifyIdToken(jwt, true);
-    } catch { return; }
-
+    if (await isInvalid(jwt)) return;
     const database = getDatabase(firebase);
 
     await database.ref(`/data/${stage}/performers/${performer}`).set(name);
 }
 
 export async function removePerformer(jwt: string, stage: string, performers: string[], performer: number) {
-    // TODO: some sort of logging on failure?
-    try {
-        await getAuth(firebase).verifyIdToken(jwt, true);
-    } catch { return; }
-
+    if (await isInvalid(jwt)) return;
     const database = getDatabase(firebase);
 
     performers.splice(performer, 1);
@@ -48,11 +51,7 @@ export async function removePerformer(jwt: string, stage: string, performers: st
 }
 
 export async function updateClients(jwt: string, stage: string, current: string, next: string) {
-    // TODO: some sort of logging on failure?
-    try {
-        await getAuth(firebase).verifyIdToken(jwt, true);
-    } catch { return; }
-
+    if (await isInvalid(jwt)) return;
     const database = getDatabase(firebase);
     const messaging = getMessaging(firebase);
 

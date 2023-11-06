@@ -6,7 +6,7 @@ import {AiOutlineWarning} from "react-icons/ai";
 import {getAuth, signInWithEmailAndPassword} from "@firebase/auth";
 import firebase from "@/app/util/firebase/init";
 
-export default function SignInPopup(props: {logIn: ()=>void}) {
+export default function SignInPage(props: {logIn: ()=>void}) {
     const [error, setError] = useState<string>();
 
     const warningRef = useRef<HTMLDivElement>(null);

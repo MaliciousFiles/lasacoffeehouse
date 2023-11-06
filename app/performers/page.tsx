@@ -111,8 +111,8 @@ export default function ViewPerformers() {
                             let namesDiv = document.querySelector(".Names");
                             namesDiv!.scrollTo((namesDiv!.children[i] as HTMLElement).offsetLeft-visualViewport!.width/2, 0);
                         }}>{s}</p>
-                    </div>, <span key={`span${i}`} className="mx-[15px] my-0"></span>]))
-                .slice(0, -1)}
+                    </div>, <span key={`span${i}`} className="mx-[15px] my-0"></span>])
+                .slice(0,-1))}
             </div>
 
             <PerformerPopup show={showPerformers} notifsDB={notifsDB} fbToken={fbToken} performers={performers} currentPerformer={currentPerformer} currentStage={stage} close={()=>setShowPerformers(false)}></PerformerPopup>
