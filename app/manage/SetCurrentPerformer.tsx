@@ -37,7 +37,7 @@ export default function SetCurrentPerformer(props: {performers: string[], perfor
                         <div className={"w-2/3 mb-5 mx-auto flex justify-between"}>
                             <button onClick={() => setPopupOpen(false)} className={"inline-block w-16 bg-red-400 text-red-200 rounded-xl p-1.5"}>Cancel</button>
                             <button onClick={() => {
-                                setPerformer(selectedPerformer);
+                                if (selectedPerformer !== performer) setPerformer(selectedPerformer);
                                 setPopupOpen(false);
                             }} className={`inline-block w-16 bg-blue-400 text-blue-200 rounded-xl p-1.5`}>Select</button>
                         </div>

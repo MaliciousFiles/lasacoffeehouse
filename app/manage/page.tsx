@@ -26,20 +26,20 @@ export default function ManagePerformers() {
     const [firebaseLoading, setFirebaseLoading] = useState(false);
 
     useEffect(() => {
+        // the user did something, therefore update clients with new data
+        if (firebaseLoading) {
+            let current = data[stage].currentPerformer;
+            let performers = data[stage].performers;
+            updateFirebase(jwt => updateClients(jwt, stage, performers[current], performers[current+1]), false);
+        }
+
         setFirebaseLoading(false);
     }, [data]);
 
-    const updateFirebase = (func: (jwt: string)=>Promise<void>) => {
-        setFirebaseLoading(true);
+    const updateFirebase = (func: (jwt: string)=>Promise<void>, fromUser: boolean = true) => {
+        if(fromUser) setFirebaseLoading(true);
 
-        getAuth(firebase).currentUser?.getIdToken()
-            .then(async (jwt) => {
-                await func(jwt);
-
-                let current = data[stage].currentPerformer;
-                let performers = data[stage].performers;
-                await updateClients(jwt, stage, performers[current], performers[current+1]);
-            });
+        getAuth(firebase).currentUser?.getIdToken().then(func);
     }
 
     const [loggedIn, setLoggedIn] = useState(getAuth(firebase).currentUser !== null);
@@ -69,7 +69,7 @@ export default function ManagePerformers() {
 
             if (name) {
                 if (value) {
-                    updateFirebase((jwt => renamePerformer(jwt, stage, editingName, name.textContent!)));
+                    updateFirebase(jwt => renamePerformer(jwt, stage, editingName, name.textContent!));
                 } else {
                     name.textContent = origName;
                 }
