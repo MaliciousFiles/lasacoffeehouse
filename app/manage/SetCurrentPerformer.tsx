@@ -2,8 +2,9 @@ import {FaEllipsisVertical} from "react-icons/fa6";
 import React, {useEffect, useRef, useState} from "react";
 import Dropdown from "@/app/util/Dropdown";
 import scrollIntoView from "scroll-into-view-if-needed";
+import {Performer} from "@/app/util/firebase/init";
 
-export default function SetCurrentPerformer(props: {performers: string[], performer: number, setPerformer: (performer: number) => void}) {
+export default function SetCurrentPerformer(props: {performers: Performer[], performer: number, setPerformer: (performer: number) => void}) {
     const {performers, performer, setPerformer} = props;
 
     const [popupOpen, setPopupOpen] = useState(false);
@@ -13,9 +14,11 @@ export default function SetCurrentPerformer(props: {performers: string[], perfor
 
     useEffect(() => {
         setSelectedPerformer(performer);
-        if (!scrollArea.current) return;
 
-        scrollIntoView(scrollArea.current.childNodes[performer*2] as Element, {behavior: 'instant', scrollMode: 'always'});
+        let child;
+        if (!(child = scrollArea.current?.childNodes[performer*2])) return;
+
+        scrollIntoView(child as Element, {behavior: 'instant', scrollMode: 'always'});
     }, [performer]);
 
     return (
@@ -28,9 +31,9 @@ export default function SetCurrentPerformer(props: {performers: string[], perfor
 
                         <div ref={scrollArea} className={"bg-slate-300 rounded-xl w-3/5 m-auto h-3/5 text-slate-900 overflow-y-scroll shadow-inner"}>
                             {([] as any[]).concat(...performers.map((p, i) => [
-                                <div key={p+i+"p"} className={"py-2.5"+(i === selectedPerformer ? " bg-blue-500 text-blue-200" : "")}
-                                    onClick={() => setSelectedPerformer(i)} >{p}</div>,
-                                <div key={p+i+"s"} className={"bg-neutral-400 w-full h-px"} />
+                                <div key={p.name+i+"p"} className={"py-2.5"+(i === selectedPerformer ? " bg-blue-500 text-blue-200" : "")}
+                                    onClick={() => setSelectedPerformer(i)} >{p.name}</div>,
+                                <div key={p.name+i+"s"} className={"bg-neutral-400 w-full h-px"} />
                                 ])).slice(0,-1)}
                         </div>
 

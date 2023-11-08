@@ -13,8 +13,18 @@ const firebase = initializeApp({
 });
 export default firebase;
 
+export function genUID() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2);
+}
+
+export type Performer = {
+    uid: string
+    name: string
+    artists: string[]
+}
+
 export type Stage = {
     name: string
-    performers: string[]
+    performers: Performer[]
     currentPerformer: number
 }

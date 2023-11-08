@@ -1,6 +1,6 @@
 "use client";
 
-import firebase from "@/app/util/firebase/init";
+import firebase, {genUID} from "@/app/util/firebase/init";
 import {getAuth} from "@firebase/auth";
 import React, {useContext, useEffect, useRef, useState} from "react";
 import SignInPage from "@/app/manage/SignInPage";
@@ -197,9 +197,10 @@ export default function ManagePerformers() {
     }
 
     const scroll = (ifNeeded: boolean) => {
-        if (!performersContainer.current || !performersContainer.current?.childNodes) return;
+        let child;
+        if (!(child=performersContainer.current?.childNodes[data[stage].currentPerformer*2])) return;
 
-        scrollIntoView(performersContainer.current.childNodes[data[stage].currentPerformer*2] as Element, {
+        scrollIntoView(child as Element, {
             behavior: 'smooth',
             scrollMode: ifNeeded ? 'if-needed' : 'always'
         })
@@ -209,6 +210,15 @@ export default function ManagePerformers() {
     useEffect(() => scroll(true), [data]);
     useEffect(() => scroll(false), [stage]);
     useEffect(() => scroll(false), []);
+
+    const genDivider = (i: number) => {
+        return <div className={"w-full flex" + (i == -1 ? " mt-2" : "")} key={"s"+i}>
+            <div className={"bg-neutral-400 inline-block w-1/3 h-px m-auto"} />
+            <button className={"bg-blue-300 inline-block text-blue-100 rounded-lg p-1"}
+                    onClick={() => setAddingPerformer(i+1)}><FiPlus /></button>
+            <div className={"bg-neutral-400 inline-block w-1/3 h-px m-auto"} />
+        </div>
+    }
 
     return !loggedIn ? <SignInPage logIn={()=>setLoggedIn(true)} /> : (
         <div className="h-full w-full">
@@ -221,17 +231,18 @@ export default function ManagePerformers() {
                 updateFirebase(jwt => setCurrentPerformer(jwt, stage, p));
             }} />
 
-            <AddPerformerPopup addingPerformer={addingPerformer} cancel={()=>setAddingPerformer(-1)} add={(name: string) => {
+            <AddPerformerPopup addingPerformer={addingPerformer} cancel={()=>setAddingPerformer(-1)} add={(name: string, artists: string[]) => {
                 updateFirebase(jwt => updatePerformers(jwt, stage, [
                         ...data[stage].performers.slice(0, addingPerformer),
-                        name,
+                        {uid: genUID(), name, artists},
                         ...data[stage].performers.slice(addingPerformer)
                     ]));
             }}/>
             <div ref={performersContainer} className={"shadow-inner mt-5 text-left bg-gray-200 h-3/5 overflow-y-auto w-4/5 m-auto rounded-2xl" + (dragging === -1 ? "" : " touch-none")}>
+                {genDivider(-1)}
                 {([] as any[]).concat(...data[stage].performers.map((p, i) =>
                     [
-                        <div key={p+i} >
+                        <div key={p.name+i} >
                             { i === dragging && <div className={"table"}><p className={"p-3"}>&nbsp;</p></div>}
                             <div className={"table select-none" + (i === dragging ? " fixed bg-gray-200 rounded-s shadow-2xl z-10" : "")}>
                                 <div className="table-cell whitespace-nowrap">
@@ -256,7 +267,7 @@ export default function ManagePerformers() {
                                             }
                                         }).then()} : undefined}
                                         onKeyDown={(evt) => {if (evt.key === 'Enter') {evt.preventDefault(); confirm(true);}}}
-                                    >{p}</p>
+                                        >{p.name}</p>
                                 </div>
                                 <div id="buttons" className={"table-cell w-full text-right translate-y-0.5"}>
                                     {editingName === i || removingPerformer === i ?
@@ -275,13 +286,8 @@ export default function ManagePerformers() {
                                 </div>
                             </div>
                         </div>,
-                        <div className={"w-full flex"} key={"s"+i}>
-                                <div className={"bg-neutral-400 inline-block w-1/3 h-px m-auto"} />
-                            <button className={"bg-blue-300 inline-block text-blue-100 rounded-lg p-1"}
-                                    onClick={() => setAddingPerformer(i+1)}><FiPlus /></button>
-                            <div className={"bg-neutral-400 inline-block w-1/3 h-px m-auto"} />
-                        </div>
-                    ])).slice(0, -1)}
+                        genDivider(i)
+                    ]))/*.slice(0, -1)*/}
             </div>
         </div>
     )

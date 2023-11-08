@@ -5,6 +5,7 @@ import { getMessaging } from 'firebase-admin/messaging';
 import {getDatabase} from "firebase-admin/database";
 import {getAuth} from "firebase-admin/auth";
 import {AES, enc} from "crypto-js";
+import {Performer} from "@/app/util/firebase/init";
 
 const firebase = getApps().find(a => a.name == "Admin App") ??
     initializeApp({
@@ -28,7 +29,7 @@ export async function setCurrentPerformer(jwt: string, stage: string, performer:
     await database.ref(`/data/${stage}/currentPerformer`).set(performer);
 }
 
-export async function updatePerformers(jwt: string, stage: string, performers: string[]) {
+export async function updatePerformers(jwt: string, stage: string, performers: Performer[]) {
     if (await isInvalid(jwt)) return;
     const database = getDatabase(firebase);
 
@@ -42,7 +43,7 @@ export async function renamePerformer(jwt: string, stage: string, performer: num
     await database.ref(`/data/${stage}/performers/${performer}`).set(name);
 }
 
-export async function removePerformer(jwt: string, stage: string, performers: string[], performer: number) {
+export async function removePerformer(jwt: string, stage: string, performers: Performer[], performer: number) {
     if (await isInvalid(jwt)) return;
     const database = getDatabase(firebase);
 
@@ -50,7 +51,7 @@ export async function removePerformer(jwt: string, stage: string, performers: st
     await database.ref(`/data/${stage}/performers`).set(performers);
 }
 
-export async function updateClients(jwt: string, stage: string, current: string, next: string) {
+export async function updateClients(jwt: string, stage: string, current: Performer, next: Performer) {
     if (await isInvalid(jwt)) return;
     const database = getDatabase(firebase);
     const messaging = getMessaging(firebase);
@@ -69,12 +70,12 @@ export async function updateClients(jwt: string, stage: string, current: string,
             for (let i = 0; i <= 1; i++) {
                 const performer = i == 0 ? current : next;
 
-                if (fcm[token][stage].some(((p: any) => p.performer === performer))) {
+                if (fcm[token][stage].some(((p: any) => p === performer?.uid))) {
                     messaging.send({
                         token,
                         notification: {
                             title: !i ? "Performing Now" : "Up Next",
-                            body: !i ? `${performer} is now performing!` : `${performer} is performing next!`
+                            body: !i ? `${performer.name} is now performing!` : `${performer.name} is performing next!`
                         }
                     }).then().catch(() => {
                         return database.ref(`/fcm/${token}`).remove();

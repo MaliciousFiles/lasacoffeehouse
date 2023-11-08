@@ -1,25 +1,42 @@
 "use client";
 
-import React, {useContext, useEffect, useState} from "react";
-import PerformerPopup from "@/app/performers/PerformerPopup";
-import {AiOutlineUnorderedList} from "react-icons/ai";
-import {getDatabase, onValue, ref, set} from "@firebase/database";
-import firebase, {Stage} from "@/app/util/firebase/init";
+import React, {useContext, useEffect, useRef, useState} from "react";
+import {getDatabase, ref, set} from "@firebase/database";
+import firebase from "@/app/util/firebase/init";
 import {getMessaging, getToken, onMessage} from "@firebase/messaging";
 import SetupPopup, {SetupStage} from "@/app/performers/SetupPopup";
 import FirebaseContext from "@/app/util/firebase/FirebaseContext";
+import {BiBell, BiBellOff, BiSolidSquareRounded} from "react-icons/bi";
+import {TbTriangleFilled} from "react-icons/tb";
 
 export default function ViewPerformers() {
-    const [selectedStage, setStage] = useState(0);
-    const [showPerformers, setShowPerformers] = useState(false);
-    const [notifsDB, setNotifsDB] = useState<IDBDatabase>();
-    const [fbToken, setFbToken] = useState<string>();
-
     const data = useContext(FirebaseContext);
 
+    const [fbToken, setFbToken] = useState<string>();
     const [setupStage, setSetupStage] = useState<SetupStage>();
-    // window won't exist till page loads
+    const [selectedStage, setStage] = useState(0);
+
+    // notifs are special b/c they're synced to local storage, not FB
+    const [notifs, setNotifs] = useState<{[i: string]: string[]}>({});
+
+    // sync to FB and localStorage every time `notifs` is updated
     useEffect(() => {
+        for (const stage in notifs) {
+            localStorage.setItem(`lasacoffeehouse:notifs:${stage}`, JSON.stringify(notifs[stage]));
+
+            if (fbToken) {
+                set(ref(getDatabase(firebase), `/fcm/${fbToken}/${stage}`), notifs[stage]).then();
+            }
+        }
+    }, [fbToken, notifs])
+
+    // load from localStorage and determine setup stage
+    useEffect(() => {
+        Object.keys(data).reduce((obj, s) => {
+            obj[s] = JSON.parse(localStorage.getItem(`lasacoffeehouse:notifs:${s}`) ?? '[]');
+            return obj;
+        }, notifs);
+
         new Promise(resolve => setTimeout(resolve, 50))
             .then(() => {
                 let iOS = ['iPad Simulator', 'iPhone Simulator', 'iPod Simulator', 'iPad', 'iPhone', 'iPod'].includes(navigator.platform);
@@ -33,25 +50,9 @@ export default function ViewPerformers() {
             });
     }, [])
 
-    // init `notifsDB`
-    useEffect(() =>{
-        let request = indexedDB.open("notifications");
-        request.onupgradeneeded = evt => {
-            for (let name in data) {
-                const db = (evt.target! as IDBOpenDBRequest).result;
-
-                if (db.objectStoreNames.contains(name)) db.deleteObjectStore(name);
-                db.createObjectStore(name, {keyPath: "performer"});
-            }
-        }
-
-        request.onsuccess = (evt) => {
-            setNotifsDB((evt.target as IDBOpenDBRequest).result);
-        }
-    }, [selectedStage]);
-
+    // init notif service when we have permission
     useEffect(() => {
-        if (setupStage === undefined || setupStage !== SetupStage.NONE) return;
+        if (setupStage !== SetupStage.NONE) return;
 
         const messaging = getMessaging(firebase);
         const database = getDatabase(firebase);
@@ -75,47 +76,95 @@ export default function ViewPerformers() {
 
     }, [setupStage]);
 
-    const stages = Object.keys(data);
-    const stage = stages[selectedStage];
+    const stage = Object.keys(data)[selectedStage];
     const performers = data[stage].performers;
     const currentPerformer = data[stage].currentPerformer;
 
-    return (
-        <div>
-            <div className="mt-12 w-full">
-                <p className="text-2xl text-center text-[#0A2240] mb-2.5">LASA Coffeehouse</p>
-                <div className="w-[95%] h-0.5 m-auto" style={{background: "linear-gradient(to right, #00000000 10%, #5e6b7c, #00000000 90%)"}}></div>
-            </div>
+    const [cohort, setCohort] = useState<-1|1>(1);
 
-            <div className="inline-block mt-[3rem] text-center">
-                <div className="Names whitespace-nowrap w-screen overflow-x-hidden scroll-smooth relative">
-                    {stages.map(s =>
-                        <div key={s} className="inline-block text-center -translate-x-2/4 translate-y-0 ml-[50vw] mr-[50vw]">
-                            <p className="text-[#0A2240] text-2xl font2">{performers[currentPerformer]}</p>
-                            <p className="text-[#5e6b7c] text-xl mt-[35px] font2">{performers[currentPerformer+1]}</p>
-                            <p className="text-[#5e6b7c] text-xl mt-[35px] font2">{performers[currentPerformer+2]}</p>
+    // scroll to top when view changes
+    const scrollView = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        scrollView.current?.scrollTo(0, 0);
+    }, [cohort, stage]);
+
+    // tailwind won't load if I just define the pink/emerald part
+    const color = {
+        bg: selectedStage == 0 ? 'bg-pink-600' : 'bg-emerald-600',
+        bgLight: selectedStage == 0 ? 'bg-pink-50' : 'bg-emerald-50',
+        border: `border ${(selectedStage == 0 ? 'border-pink-600' : 'border-emerald-600')}`,
+        text: selectedStage == 0 ? 'text-pink-600' : 'text-emerald-600',
+        textLight: selectedStage == 0 ? 'text-pink-100' : 'text-emerald-100'
+    };
+
+    return (
+        <div className={"bg-[--navy] flex flex-col h-full"} >
+            <div className={"h-[45%] flex"}>
+                <div className={"flex flex-col justify-evenly h-4/5 m-auto text-[--light-gray]"}>
+                    <p className={"text-sm font-medium"}>Currently Performing</p>
+                    <p className={"text-3xl m-1 font-heavy"}>{performers[currentPerformer]?.name}</p>
+                    {/* TODO: actually store people in data */}
+                    <p className={"text-lg font-medium"}>Performed by {performers[currentPerformer]?.artists.join(',')}</p>
+                </div>
+            </div>
+            <div className={"bg-white h-[55%] rounded-t-xl flex flex-col overflow-hidden"}>
+                <div className={"bg-gray-50 h-16 flex text-left"}>
+                    {[-1, 1].map(c =>
+                        <div key={`cohort${c}`} onClick={()=>setCohort(c as -1|1)} className={`w-1/2 ${c == cohort ? 'text-gray-800' : 'text-gray-500'} relative overflow-hidden`+(c == cohort ? ` ${color.bgLight}` : "")}>
+                            <p className={"text-xs mt-2 ml-4 mb-0"}>{c == -1 ? "Previous" : "Up Next"}</p>
+                            <p className={"ml-4 mt-1 mb-3 font-medium"}>{performers[currentPerformer+c]?.name}</p>
+                            {c == cohort && <div className={`${color.bg} w-full absolute bottom-[-1px] rounded h-1`} />}
                         </div>
                     )}
                 </div>
-                <div className="text-[#5e6b7c] mt-[1.2rem] rounded-[30px] cursor-pointer inline-block" onClick={()=>setShowPerformers(true)}>
-                    <AiOutlineUnorderedList className="inline-block" />
-                    <p className="inline-block ml-2.5 mr-0 my-2.5">View All</p>
+                <div ref={scrollView} className={"flex-grow overflow-auto"}>
+                    {performers[currentPerformer+cohort] ?
+                        <div className={"h-full"} >
+                            {(cohort == -1 ? performers.slice(0, currentPerformer-1).reverse() : performers.slice(currentPerformer+2))
+                            .map(p =>
+                                <div key={"performer"+p} className={"h-11 flex justify-between"} >
+                                    <p className={"ml-4 font-medium"}>{p.name}</p>
+                                    <button onClick={() => {
+                                        const {uid} = p;
+
+                                        // TODO: use UIDs
+                                        if (notifs[stage]?.includes(uid)) {
+                                            notifs[stage]?.splice(notifs[stage].indexOf(uid), 1);
+                                        } else {
+                                            notifs[stage]?.push(uid);
+                                        }
+
+                                        setNotifs({...notifs});
+                                    }} className={`mr-4 my-auto ${notifs[stage]?.includes(p.uid) ? color.bg : color.border} ${notifs[stage]?.includes(p.uid) ? color.textLight : color.text} rounded-2xl w-10 h-[1.65rem] text-sm`}>
+                                        {notifs[stage]?.includes(p.uid) ?
+                                            <BiBellOff className={"m-auto"} /> :
+                                            <BiBell className={"m-auto"} />
+                                        }
+                                    </button>
+                                </div>
+                            )}
+                            <div className={"h-[calc(100%-2.75rem)]"} />
+                        </div> :
+                        <p>{cohort == -1 ? "Welcome to Coffeehouse!" : "All done!"}</p>
+                    }
+
+                    <div className={"fixed pointer-events-none z-10 bottom-0 right-2.5 w-16 h-[calc(55%-4rem)] bg-gradient-to-b from-transparent to-[#ffffffcf]"} />
+                </div>
+                <div className={"flex justify-evenly bg-white w-4/5 h-9 drop-shadow-lg z-50 rounded-3xl absolute bottom-3 left-1/2 -translate-x-1/2"}>
+                    {Object.keys(data).map((s, i) =>
+                        <div key={"stage"+s} onClick={()=>setStage(i)} className={`m-1 flex-grow flex ${s == stage ? "bg-gray-100" : "bg-gray-50"} rounded-3xl`} >
+                            <div className={"my-auto w-1/3"} >
+                                {i == 0 ?
+                                    <TbTriangleFilled className={`mx-auto ${s == stage ? "text-pink-600" : "text-pink-300"}`} />
+                                    : <BiSolidSquareRounded className={`mx-auto ${s == stage ? "text-emerald-500" : "text-emerald-200"}`} />
+                                }
+                            </div>
+                            <p className={`my-auto flex-grow text-xs text-left font-heavy text-gray-${s == stage ? "700" : "400"}`}>{s}</p>
+                        </div>
+                    )}
                 </div>
             </div>
-            <div className="bg-[#e7e7e7] text-[#0A2240] fixed -translate-x-2/4 whitespace-nowrap px-[35px] py-0 rounded-[40px] left-2/4 bottom-12" style={{filter: "drop-shadow(0px 3px 5px #a6a6a6)"}}>
-                {([] as any[]).concat(...stages.map((s, i) => [
-                    <div key={`div${i}`} className={"inline-block mr-[-17px] ml-[-17px] my-2.5 px-[17px] py-1.5"+(i === selectedStage ? " rounded-[30px]" : "")} style={i === selectedStage ? {background: "white", filter: "drop-shadow(0px 3px 5px #a9a9a9)"} : {}}>
-                        <p className="m-0 cursor-pointer" onClick={() => {
-                            setStage(i);
 
-                            let namesDiv = document.querySelector(".Names");
-                            namesDiv!.scrollTo((namesDiv!.children[i] as HTMLElement).offsetLeft-visualViewport!.width/2, 0);
-                        }}>{s}</p>
-                    </div>, <span key={`span${i}`} className="mx-[15px] my-0"></span>])
-                ).slice(0,-1)}
-            </div>
-
-            <PerformerPopup show={showPerformers} notifsDB={notifsDB} fbToken={fbToken} performers={performers} currentPerformer={currentPerformer} currentStage={stage} close={()=>setShowPerformers(false)}></PerformerPopup>
             <SetupPopup stage={setupStage} setNotifsStatus={(perm) => {setSetupStage(perm === 'granted' ? SetupStage.NONE : perm === 'denied' ? SetupStage.NOTIFS_DENIED : SetupStage.ENABLE_NOTIFS)}} />
         </div>
     )

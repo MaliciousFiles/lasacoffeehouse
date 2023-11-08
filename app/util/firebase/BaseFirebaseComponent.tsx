@@ -5,14 +5,17 @@ import firebase, {Stage} from "@/app/util/firebase/init";
 import {getDatabase, onValue, ref} from "@firebase/database";
 import FirebaseContext from "@/app/util/firebase/FirebaseContext";
 
-export default function FirebaseComponent(props: {initialData: {[index: string]: Stage}, children: ReactNode}) {
+export default function BaseFirebaseComponent(props: {initialData: {[index: string]: Stage}, children: ReactNode}) {
     const [data, setData] = useState<{[index: string]: Stage}>(props.initialData);
 
     useEffect(() => {
         const dataRef = ref(getDatabase(firebase), "/data");
 
         return onValue(dataRef, (snapshot) => {
-            setData(snapshot.val());
+            setData(Object.keys(snapshot.val()).reduce((obj, stage) => {
+                if (!('performers' in obj[stage])) obj[stage]['performers'] = [];
+                return obj;
+            }, snapshot.val()));
         });
     }, [])
 
