@@ -151,7 +151,7 @@ export default function ViewPerformers() {
 
                     <div className={"fixed pointer-events-none z-10 bottom-0 right-2.5 w-16 h-[calc(55%-4rem)] bg-gradient-to-b from-transparent to-[#ffffffcf]"} />
                 </div>
-                <div className={"flex justify-evenly bg-white w-4/5 h-9 drop-shadow-lg z-10 rounded-3xl absolute bottom-3 left-1/2 -translate-x-1/2"}>
+                <div className={"flex justify-evenly bg-white w-4/5 h-9 drop-shadow-lg z-20 rounded-3xl absolute bottom-3 left-1/2 -translate-x-1/2"}>
                     {Object.keys(data).map((s, i) =>
                         <div key={"stage"+s} onClick={()=>setStage(i)} className={`m-1 flex-grow flex ${s == stage ? "bg-gray-100" : "bg-gray-50"} rounded-3xl`} >
                             <div className={"my-auto w-1/3"} >
