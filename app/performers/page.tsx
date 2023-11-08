@@ -144,7 +144,7 @@ export default function ViewPerformers() {
                                         }
 
                                         setNotifs({...notifs});
-                                    }} className={`mr-4 flex-shrink-0 my-auto ${notifs[stage]?.includes(p.uid) ? color.bg : color.border} ${notifs[stage]?.includes(p.uid) ? color.textLight : color.text} rounded-2xl basis-10 h-[1.65rem] text-sm`}>
+                                    }} className={`mr-4 flex-shrink-0 my-auto ${notifs[stage]?.includes(p.uid) ? color.bg : color.border} ${notifs[stage]?.includes(p.uid) ? color.textLight : color.text} rounded-2xl basis-1/5 h-[1.65rem] text-sm`}>
                                         {notifs[stage]?.includes(p.uid) ?
                                             <BiBellOff className={"m-auto"} /> :
                                             <BiBell className={"m-auto"} />
@@ -157,7 +157,8 @@ export default function ViewPerformers() {
                         <p>{cohort == -1 ? "Welcome to Coffeehouse!" : "All done!"}</p>
                     }
 
-                    <div className={"fixed pointer-events-none z-10 bottom-0 right-2.5 w-16 h-[calc(55%-4rem)] bg-gradient-to-b from-transparent to-[#ffffffcf]"} />
+                    {/* width = width of button + mr of button - right of this*/}
+                    <div className={"fixed pointer-events-none z-10 bottom-0 right-2.5 w-[calc(20%+1rem-0.625rem)] h-[calc(55%-4rem)] bg-gradient-to-b from-transparent to-[#ffffffcf]"} />
                 </div>
                 <div className={"flex justify-evenly bg-white w-4/5 h-11 drop-shadow-lg z-40 rounded-3xl absolute bottom-3 left-1/2 -translate-x-1/2"}>
                     {Object.keys(data).map((s, i) =>
