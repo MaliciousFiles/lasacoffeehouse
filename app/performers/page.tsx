@@ -16,7 +16,7 @@ export default function ViewPerformers() {
     const [setupStage, setSetupStage] = useState<SetupStage>();
     const [selectedStage, setStage] = useState(0);
 
-    // notifs are special b/c they're synced to local storage, not FB
+    // notifs are special because they're synced to local storage, not FB
     const [notifs, setNotifs] = useState<{[i: string]: string[]}>({});
 
     // sync to FB and localStorage every time `notifs` is updated
@@ -102,10 +102,10 @@ export default function ViewPerformers() {
         <div className={"bg-[--navy] flex flex-col h-full"} >
             <div className={"h-[45%] flex"}>
                 <div className={"flex flex-col justify-evenly h-4/5 m-auto text-[--light-gray]"}>
-                    <p className={"text-sm font-medium"}>Currently Performing</p>
+                    <p className={"text-sm font-semiheavy"}>Currently Performing</p>
                     <p className={"text-3xl m-1 font-heavy"}>{performers[currentPerformer]?.name}</p>
                     {/* TODO: actually store people in data */}
-                    <p className={"text-lg font-medium"}>Performed by {performers[currentPerformer]?.artists.join(',')}</p>
+                    {performers[currentPerformer]?.artists && <p className={"text-lg font-semiheavy"}>Performed by {performers[currentPerformer]?.artists.join(',')}</p>}
                 </div>
             </div>
             <div className={"bg-white h-[55%] rounded-t-xl flex flex-col overflow-hidden"}>
@@ -113,7 +113,7 @@ export default function ViewPerformers() {
                     {[-1, 1].map(c =>
                         <div key={`cohort${c}`} onClick={()=>setCohort(c as -1|1)} className={`w-1/2 ${c == cohort ? 'text-gray-800' : 'text-gray-500'} relative overflow-hidden`+(c == cohort ? ` ${color.bgLight}` : "")}>
                             <p className={"text-xs mt-2 ml-4 mb-0"}>{c == -1 ? "Previous" : "Up Next"}</p>
-                            <p className={"ml-4 mt-1 mb-3 font-medium"}>{performers[currentPerformer+c]?.name}</p>
+                            <p className={"ml-4 mt-1 mb-3 font-semiheavy"}>{performers[currentPerformer+c]?.name}</p>
                             {c == cohort && <div className={`${color.bg} w-full absolute bottom-[-1px] rounded h-1`} />}
                         </div>
                     )}
@@ -123,12 +123,20 @@ export default function ViewPerformers() {
                         <div className={"h-full"} >
                             {(cohort == -1 ? performers.slice(0, currentPerformer-1).reverse() : performers.slice(currentPerformer+2))
                             .map(p =>
-                                <div key={"performer"+p} className={"h-11 flex justify-between"} >
-                                    <p className={"ml-4 font-medium"}>{p.name}</p>
+                                <div key={"performer"+p.name} className={"h-11 w-full flex justify-between"} >
+                                    <div className={"text-left flex overflow-hidden whitespace-nowrap my-auto flex-grow"}>
+                                        <p className={"pl-4"} >{p.name}</p>
+                                        {p.artists && <div className={"flex-grow my-auto overflow-hidden whitespace-nowrap text-ellipsis text-xs text-gray-500"}>
+                                            <p className={"inline"}>&nbsp;by</p>
+                                            {([] as any[]).concat(...p.artists.map((a, i) => [
+                                                <p key={"artist"+i} className={"inline font-semiheavy"}>&nbsp;{a}</p>,
+                                                <p key={"c"+i} className={"inline font-light"}>,</p>
+                                            ])).slice(0,-1)}
+                                        </div>}
+                                    </div>
                                     <button onClick={() => {
                                         const {uid} = p;
 
-                                        // TODO: use UIDs
                                         if (notifs[stage]?.includes(uid)) {
                                             notifs[stage]?.splice(notifs[stage].indexOf(uid), 1);
                                         } else {
@@ -136,7 +144,7 @@ export default function ViewPerformers() {
                                         }
 
                                         setNotifs({...notifs});
-                                    }} className={`mr-4 my-auto ${notifs[stage]?.includes(p.uid) ? color.bg : color.border} ${notifs[stage]?.includes(p.uid) ? color.textLight : color.text} rounded-2xl w-10 h-[1.65rem] text-sm`}>
+                                    }} className={`mr-4 flex-shrink-0 my-auto ${notifs[stage]?.includes(p.uid) ? color.bg : color.border} ${notifs[stage]?.includes(p.uid) ? color.textLight : color.text} rounded-2xl basis-10 h-[1.65rem] text-sm`}>
                                         {notifs[stage]?.includes(p.uid) ?
                                             <BiBellOff className={"m-auto"} /> :
                                             <BiBell className={"m-auto"} />
@@ -151,9 +159,9 @@ export default function ViewPerformers() {
 
                     <div className={"fixed pointer-events-none z-10 bottom-0 right-2.5 w-16 h-[calc(55%-4rem)] bg-gradient-to-b from-transparent to-[#ffffffcf]"} />
                 </div>
-                <div className={"flex justify-evenly bg-white w-4/5 h-9 drop-shadow-lg z-20 rounded-3xl absolute bottom-3 left-1/2 -translate-x-1/2"}>
+                <div className={"flex justify-evenly bg-white w-4/5 h-11 drop-shadow-lg z-40 rounded-3xl absolute bottom-3 left-1/2 -translate-x-1/2"}>
                     {Object.keys(data).map((s, i) =>
-                        <div key={"stage"+s} onClick={()=>setStage(i)} className={`m-1 flex-grow flex ${s == stage ? "bg-gray-100" : "bg-gray-50"} rounded-3xl`} >
+                        <div key={"stage"+s} onClick={()=>setStage(i)} className={`m-1.5 flex-grow flex ${s == stage ? "bg-gray-100" : "bg-gray-50"} rounded-3xl`} >
                             <div className={"my-auto w-1/3"} >
                                 {i == 0 ?
                                     <TbTriangleFilled className={`mx-auto ${s == stage ? "text-pink-600" : "text-pink-300"}`} />

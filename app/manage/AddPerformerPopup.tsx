@@ -15,11 +15,12 @@ export default function AddPerformerPopup(props: {addingPerformer: number, cance
     const cancel = () => {
         props.cancel();
         nameRef.current!.value = "";
+        artistRef.current!.value = "";
         setValid(false);
     }
 
     const add = () => {
-        props.add(nameRef.current!.value, artistRef.current!.value.split(/, ?/));
+        props.add(nameRef.current!.value, artistRef.current!.value.split(/, */).map(s=>s.trim()).filter(s => s != ""));
         cancel();
     }
 
