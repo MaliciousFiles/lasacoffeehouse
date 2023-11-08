@@ -105,7 +105,7 @@ export default function ViewPerformers() {
                     <p className={"text-sm font-semiheavy"}>Currently Performing</p>
                     <p className={"text-3xl m-1 font-heavy"}>{performers[currentPerformer]?.name}</p>
                     {/* TODO: actually store people in data */}
-                    {performers[currentPerformer]?.artists && <p className={"text-lg font-semiheavy"}>Performed by {performers[currentPerformer]?.artists.join(',')}</p>}
+                    <p className={"text-lg font-semiheavy"}>{performers[currentPerformer]?.artists && `Performed by ${performers[currentPerformer]?.artists.join(',')}`}</p>
                 </div>
             </div>
             <div className={"bg-white h-[55%] rounded-t-xl flex flex-col overflow-hidden"}>
