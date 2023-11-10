@@ -53,7 +53,7 @@ export default function SignInPage(props: {logIn: ()=>void}) {
     return (
         <div className="w-full h-full bg-left" style={{backgroundImage: "url('/images/background.jpeg')"}}>
             <div className="absolute rounded-[20px] w-4/5 h-2/3 left-1/2 top-2/4 -translate-x-2/4 -translate-y-2/4 bg-white">
-                <div className="mt-3.5">
+                <div className="mt-6">
                     <Image className="inline-block -translate-y-0.5" src="/images/logo.svg" height={27} width={27} alt="LASA logo"></Image>
                     <div className="ml-2 inline-block">
                         <p className="text-[#051324] inline-block font2 font-semibold">LASA&nbsp;</p>
@@ -63,8 +63,8 @@ export default function SignInPage(props: {logIn: ()=>void}) {
                 </div>
 
                 <div className="mt-3 mx-2 text-[1.35rem]">
-                    <p className="m-0">Enter Manager</p>
-                    <p className="m-0">Credentials</p>
+                    <p>Enter Manager</p>
+                    <p>Credentials</p>
                 </div>
                 <div ref={warningRef} className={`text-sm w-full text-rose-600 mt-1.5 absolute transition-opacity duration-[0.3s] opacity-${error ? '100' : '0'}`}>
                     <AiOutlineWarning className="-translate-y-0.5 inline-block" />

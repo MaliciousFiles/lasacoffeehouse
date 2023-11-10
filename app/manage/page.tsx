@@ -44,7 +44,8 @@ export default function ManagePerformers() {
     }
 
     const [loggedIn, setLoggedIn] = useState(getAuth(firebase).currentUser !== null);
-    const [stage, setStage] = useState(Object.keys(data)[0]);
+    const [selectedStage, setStage] = useState(0);
+    const stage = Object.keys(data)[selectedStage];
 
     const [editingName, setEditingName] = useState(-1);
     const [origName, setOrigName] = useState("");
@@ -116,13 +117,12 @@ export default function ManagePerformers() {
         navigator.vibrate && navigator.vibrate(100);
 
         let row = ((touchEvt || mouseEvt)!.target as HTMLElement);
-        while (!row.classList.contains('table')) row = row.parentElement!;
+        while (!row.classList.contains('row')) row = row.parentElement!;
 
         let pos = touchEvt ? touchEvt.touches[0] : mouseEvt!;
 
         performerPositions.current = data[stage].performers.map((_, i)=>i);
         svgOffset.current = {x: pos.clientX - row.offsetLeft, y: pos.clientY - row.offsetTop + performersContainer.current!.scrollTop};
-        row.style.width = row.offsetWidth+'px';
     }
 
     const checkRowMove = (row: HTMLElement, idx: number) => {
@@ -139,7 +139,7 @@ export default function ManagePerformers() {
         if (dragging === -1) setDragging(idx);
 
         let row = ((touchEvt || mouseEvt)!.target as HTMLElement);
-        while (!row.classList.contains('table')) row = row.parentElement!;
+        while (!row.classList.contains('row')) row = row.parentElement!;
 
         let mousePosContainer = touchEvt ? touchEvt.touches[0] : mouseEvt!;
 
@@ -180,7 +180,7 @@ export default function ManagePerformers() {
     const stopDrag = (evt: React.UIEvent) => {
 
         let row = (evt.target as HTMLElement);
-        while (!row.classList.contains('table')) row = row.parentElement!;
+        while (!row.classList.contains('row')) row = row.parentElement!;
 
         if (performerPositions.current.length) {
             const performers = performerPositions.current
@@ -220,8 +220,70 @@ export default function ManagePerformers() {
         </div>
     }
 
+    // tailwind won't load if I just define the pink/emerald part
+    const color = {
+        bg: selectedStage == 0 ? 'bg-pink-600' : 'bg-emerald-600',
+        bgLight: selectedStage == 0 ? 'bg-pink-50' : 'bg-emerald-50',
+        bgDark: selectedStage == 0 ? 'bg-pink-800' : 'bg-emerald-800',
+        border: `border ${(selectedStage == 0 ? 'border-pink-600' : 'border-emerald-600')}`,
+        text: selectedStage == 0 ? 'text-pink-600' : 'text-emerald-600',
+        textLight: selectedStage == 0 ? 'text-pink-100' : 'text-emerald-100'
+    };
+
+    const currentPerformer = data[stage].performers[data[stage].currentPerformer];
+
     return !loggedIn ? <SignInPage logIn={()=>setLoggedIn(true)} /> : (
-        <div className="h-full w-full">
+        <div className={"bg-white flex w-full h-full flex-col"}>
+            <div className={"flex justify-between flex-shrink-0 px-3 py-2"}>
+                <p className={"text-sm my-auto text-gray-800 font-semiheavy mx-0"}>Manager Hub</p>
+                <button className={"bg-gray-100 rounded-2xl text-xs text-gray-400 px-3 py-1"} onClick={()=>setLoggedIn(false)}>Log Out</button>
+            </div>
+            <div className={`${color.bgLight} flex flex-col flex-shrink-0`}>
+                <button className={`rounded-2xl text-xs mr-4 mt-2 px-2.5 py-1 ml-auto ${color.bgDark} ${color.textLight}`}
+                    onClick={/*TODO*/undefined}>Send Notification</button>
+                <div className={"ml-5 w-3/5"}>
+                    <p className={"text-xs mt-2 text-left font-semiheavy text-gray-400"}>Currently Performing</p>
+                    <p className={"text-2xl mt-1 text-gray-800 font-semiheavy text-left"}>{currentPerformer.name}</p>
+                    <p className={"text-xs mt-3 text-gray-400 font-semiheavy line-clamp-2 overflow-hidden text-ellipsis text-left"}>{currentPerformer.artists ? `Performed by ${currentPerformer.artists.join(", ")}` : ' '}</p>
+                </div>
+                <div className={"mx-3 mt-6 mb-4 flex text-xs justify-evenly"}>
+                    <button className={`px-6 py-2 rounded-lg ${color.bg} ${color.textLight}`}
+                        onClick={() => updateFirebase(jwt => setCurrentPerformer(jwt, stage, data[stage].currentPerformer+1))}>Next Performer</button>
+                    <button className={`px-4 py-2 rounded-lg ${color.border} ${color.text}`}
+                            onClick={() => updateFirebase(jwt => setCurrentPerformer(jwt, stage, data[stage].currentPerformer-1))}>Previous</button>
+                    <button className={`px-4 py-2 rounded-lg ${color.border} ${color.text}`}
+                            onClick={/*TODO*/undefined}>Change</button>
+                </div>
+            </div>
+
+            <div ref={performersContainer} className={"flex-grow select-none overflow-y-scroll"+(dragging == -1 ? "" : " touch-none")}>
+                {([] as any[]).concat(...data[stage].performers.map((p,i) => [
+                    <div key={"performer"+p.name} className={""} >
+                        {i == dragging && <div><p>&nbsp;</p><p className={"text-xs py-2"}>&nbsp;</p></div>}
+                        <div className={"row px-6 py-2 flex"+(i == dragging ? " fixed rounded-s shadow-2xl w-full bg-white" : "")}>
+                            <div className={"flex flex-col text-left flex-grow overflow-hidden whitespace-nowrap"}>
+                                <p className={"text-gray-800 font-semiheavy"}>{p.name}</p>
+                                <p className={"text-gray-600 text-xs text-ellipsis overflow-hidden"}>{p.artists ? p.artists.join(',') : " "}</p>
+                            </div>
+                            {(performerPositions.current[i] ?? i) == data[stage].currentPerformer &&
+                                <p className={`${color.bg} ${color.textLight} text-xs px-2 h-fit my-auto py-0.5 mr-1.5 rounded-sm font-semiheavy`}>Current</p> }
+                            <button className={"bg-gray-100 text-gray-700 h-fit my-auto py-0.5 px-2 rounded-sm mr-1.5 font-semiheavy text-xs"}
+                                    onClick={/*TODO*/undefined}>Edit</button>
+                            <div className={"text-gray-400 py-0.5 touch-none rounded-xs text-sm flex-shrink-0 bg-gray-200 my-auto"}
+                                 onTouchMove={(evt) => drag(i, evt)}
+                                 onMouseMove={(evt) => drag(i, undefined, evt)}
+                                 onTouchStart={(evt) => startDrag(i, evt)}
+                                 onMouseDown={(evt) => startDrag(i, undefined, evt)}
+                                 onTouchEnd={stopDrag}
+                                 onMouseUp={stopDrag}>
+                                <RiDraggable />
+                            </div>
+                        </div>
+                    </div>,
+                    <div key={"spacer"+i} className={"w-full h-px bg-gray-200"} />
+                ])).slice(0, -1)}
+            </div>
+        {/*<div className="h-full w-full">
             <Loading enabled={firebaseLoading} />
 
             <p className="text-center text-2xl m-0 py-2">Manager Dashboard</p>
@@ -287,8 +349,9 @@ export default function ManagePerformers() {
                             </div>
                         </div>,
                         genDivider(i)
-                    ]))/*.slice(0, -1)*/}
+                    ]))}
             </div>
+        </div>*/}
         </div>
     )
 }

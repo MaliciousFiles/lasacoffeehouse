@@ -58,6 +58,7 @@ export default function ViewPerformers() {
         const messaging = getMessaging(firebase);
         const database = getDatabase(firebase);
 
+        // noinspection SpellCheckingInspection
         getToken(messaging, {vapidKey: "BKTiO6q1fNuQyg35h5_2PAzJhCktM0hur4llEn1gIB5Dlf6oCRCD5RIA4OY6BJvdR1UifBM22hAcKwVMc-OSUnc"})
             .then(token => {
                 if (token) {
@@ -104,8 +105,7 @@ export default function ViewPerformers() {
                 <div className={"flex flex-col justify-evenly h-4/5 m-auto text-[--light-gray]"}>
                     <p className={"text-sm font-semiheavy"}>Currently Performing</p>
                     <p className={"text-3xl m-1 font-heavy"}>{performers[currentPerformer]?.name}</p>
-                    {/* TODO: actually store people in data */}
-                    <p className={"text-lg font-semiheavy"}>{performers[currentPerformer]?.artists && `Performed by ${performers[currentPerformer]?.artists.join(',')}`}</p>
+                    <p className={"text-sm mx-auto w-4/5 font-semiheavy"}>{performers[currentPerformer]?.artists && `Performed by ${performers[currentPerformer]?.artists.join(',')}`}</p>
                 </div>
             </div>
             <div className={"bg-white h-[55%] rounded-t-xl flex flex-col overflow-hidden"}>
@@ -154,7 +154,7 @@ export default function ViewPerformers() {
                             )}
                             <div className={"h-[calc(100%-2.75rem)]"} />
                         </div> :
-                        <p>{cohort == -1 ? "Welcome to Coffeehouse!" : "All done!"}</p>
+                        <p className={"mt-2"}>{cohort == -1 ? "Welcome to Coffeehouse!" : "All done!"}</p>
                     }
 
                     {/* width = width of button + mr of button - right of this*/}
