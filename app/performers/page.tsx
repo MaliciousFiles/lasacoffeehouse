@@ -171,7 +171,7 @@ export default function ViewPerformers() {
                 </div>
             </div>
 
-            <Popup title={setupStage as string} open={!!setupStage} dimensions={'w-4/5 h-4/5'} closeable={false} >
+            <Popup title={setupStage as string} open={!!setupStage} dimensions={'w-4/5 h-4/5'} closeable={false} colorScheme={color} >
                 {
                     setupStage === SetupStage.OPEN_SAFARI ? (
                         [
