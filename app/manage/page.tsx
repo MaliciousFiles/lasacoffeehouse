@@ -19,6 +19,8 @@ import AddPerformerPopup from "@/app/manage/AddPerformerPopup";
 import SetCurrentPerformer from "@/app/manage/SetCurrentPerformer";
 import scrollIntoView from "scroll-into-view-if-needed";
 import Loading from "@/app/util/Loading";
+import Popup from "@/app/util/Popup";
+import {getColorScheme} from "@/app/util/util";
 
 export default function ManagePerformers() {
     const data = useContext(FirebaseContext);
@@ -93,8 +95,16 @@ export default function ManagePerformers() {
     const performersContainer = useRef<HTMLDivElement>(null);
     const svgOffset = useRef({x: 0, y: 0});
     const performerPositions = useRef<number[]>([]);
+    const currentChips = useRef<(HTMLElement|null)[]>([]);
 
     const scrollBy = useRef(0);
+
+    // TODO: error when dragging last performer?
+    // TODO: 2-line artist string extends div
+    // TODO: stage selector
+    // TODO: send notif popup
+    // TODO: edit performer popup
+    // TODO: change current performer popup
 
     const movePerformer = (parent: HTMLElement, idx: number, direction: 1 | -1) => {
         let pos = performerPositions.current[idx]
@@ -111,6 +121,10 @@ export default function ManagePerformers() {
 
         performerPositions.current[idx] += direction;
         performerPositions.current[idx2] -= direction;
+
+        for (let i = 0; i < currentChips.current.length; i++) {
+            currentChips.current[i]?.classList.toggle("invisible", performerPositions.current[i] != data[stage].currentPerformer);
+        }
     }
 
     const startDrag = (idx: number, touchEvt?: React.TouchEvent<HTMLDivElement>, mouseEvt?: React.MouseEvent<HTMLDivElement>) => {
@@ -220,15 +234,9 @@ export default function ManagePerformers() {
         </div>
     }
 
-    // tailwind won't load if I just define the pink/emerald part
-    const color = {
-        bg: selectedStage == 0 ? 'bg-pink-600' : 'bg-emerald-600',
-        bgLight: selectedStage == 0 ? 'bg-pink-50' : 'bg-emerald-50',
-        bgDark: selectedStage == 0 ? 'bg-pink-800' : 'bg-emerald-800',
-        border: `border ${(selectedStage == 0 ? 'border-pink-600' : 'border-emerald-600')}`,
-        text: selectedStage == 0 ? 'text-pink-600' : 'text-emerald-600',
-        textLight: selectedStage == 0 ? 'text-pink-100' : 'text-emerald-100'
-    };
+    const color = getColorScheme(selectedStage)
+
+    const [notifPopup, setNotifPopup] = useState(false);
 
     const currentPerformer = data[stage].performers[data[stage].currentPerformer];
 
@@ -238,9 +246,22 @@ export default function ManagePerformers() {
                 <p className={"text-sm my-auto text-gray-800 font-semiheavy mx-0"}>Manager Hub</p>
                 <button className={"bg-gray-100 rounded-2xl text-xs text-gray-400 px-3 py-1"} onClick={()=>setLoggedIn(false)}>Log Out</button>
             </div>
+
+            {/*TODO: popup */}
+            <Popup title={"Send Notification"} open={notifPopup} dimensions={'w-4/5 h-2/5'} colorScheme={color} onClose={() => setNotifPopup(false)}>
+                <div className={"mx-5 mt-3 flex flex-col"}>
+                    <p className={"text-sm text-left"}>Notification Title</p>
+                    <input className={"border text-xs border-gray-200 rounded-md py-2 px-3"} />
+                </div>
+                <div className={"mx-5 mt-3 flex flex-col"}>
+                    <p className={"text-sm text-left"}>Notification Body</p>
+                    <input className={"border text-xs border-gray-200 rounded-md py-2 px-3"} />
+                </div>
+            </Popup>
+
             <div className={`${color.bgLight} flex flex-col flex-shrink-0`}>
                 <button className={`rounded-2xl text-xs mr-4 mt-2 px-2.5 py-1 ml-auto ${color.bgDark} ${color.textLight}`}
-                    onClick={/*TODO*/undefined}>Send Notification</button>
+                    onClick={() => setNotifPopup(true)}>Send Notification</button>
                 <div className={"ml-5 w-3/5"}>
                     <p className={"text-xs mt-2 text-left font-semiheavy text-gray-400"}>Currently Performing</p>
                     <p className={"text-2xl mt-1 text-gray-800 font-semiheavy text-left"}>{currentPerformer.name}</p>
@@ -258,15 +279,14 @@ export default function ManagePerformers() {
 
             <div ref={performersContainer} className={"flex-grow select-none overflow-y-scroll"+(dragging == -1 ? "" : " touch-none")}>
                 {([] as any[]).concat(...data[stage].performers.map((p,i) => [
-                    <div key={"performer"+p.name} className={""} >
+                    <div key={"performer"+p.name} >
                         {i == dragging && <div><p>&nbsp;</p><p className={"text-xs py-2"}>&nbsp;</p></div>}
                         <div className={"row px-6 py-2 flex"+(i == dragging ? " fixed rounded-s shadow-2xl w-full bg-white" : "")}>
                             <div className={"flex flex-col text-left flex-grow overflow-hidden whitespace-nowrap"}>
                                 <p className={"text-gray-800 font-semiheavy"}>{p.name}</p>
                                 <p className={"text-gray-600 text-xs text-ellipsis overflow-hidden"}>{p.artists ? p.artists.join(',') : " "}</p>
                             </div>
-                            {(performerPositions.current[i] ?? i) == data[stage].currentPerformer &&
-                                <p className={`${color.bg} ${color.textLight} text-xs px-2 h-fit my-auto py-0.5 mr-1.5 rounded-sm font-semiheavy`}>Current</p> }
+                            <p ref={el => currentChips.current[i] = el} className={`${color.bg} ${color.textLight} my-auto text-xs px-2 h-fit py-0.5 mr-1.5 rounded-sm font-semiheavy ${i != data[stage].currentPerformer && 'invisible'}`}>Current</p>
                             <button className={"bg-gray-100 text-gray-700 h-fit my-auto py-0.5 px-2 rounded-sm mr-1.5 font-semiheavy text-xs"}
                                     onClick={/*TODO*/undefined}>Edit</button>
                             <div className={"text-gray-400 py-0.5 touch-none rounded-xs text-sm flex-shrink-0 bg-gray-200 my-auto"}

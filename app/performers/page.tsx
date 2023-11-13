@@ -4,10 +4,13 @@ import React, {useContext, useEffect, useRef, useState} from "react";
 import {getDatabase, ref, set} from "@firebase/database";
 import firebase from "@/app/util/firebase/init";
 import {getMessaging, getToken, onMessage} from "@firebase/messaging";
-import SetupPopup, {SetupStage} from "@/app/performers/SetupPopup";
 import FirebaseContext from "@/app/util/firebase/FirebaseContext";
 import {BiBell, BiBellOff, BiSolidSquareRounded} from "react-icons/bi";
 import {TbTriangleFilled} from "react-icons/tb";
+import Popup from "@/app/util/Popup";
+import Image from "next/image";
+import Link from "next/link";
+import {getColorScheme, SetupStage} from "@/app/util/util";
 
 export default function ViewPerformers() {
     const data = useContext(FirebaseContext);
@@ -90,14 +93,7 @@ export default function ViewPerformers() {
         scrollView.current?.scrollTo(0, 0);
     }, [cohort, stage]);
 
-    // tailwind won't load if I just define the pink/emerald part
-    const color = {
-        bg: selectedStage == 0 ? 'bg-pink-600' : 'bg-emerald-600',
-        bgLight: selectedStage == 0 ? 'bg-pink-50' : 'bg-emerald-50',
-        border: `border ${(selectedStage == 0 ? 'border-pink-600' : 'border-emerald-600')}`,
-        text: selectedStage == 0 ? 'text-pink-600' : 'text-emerald-600',
-        textLight: selectedStage == 0 ? 'text-pink-100' : 'text-emerald-100'
-    };
+    const color = getColorScheme(selectedStage);
 
     return (
         <div className={"bg-[--navy] flex flex-col h-full"} >
@@ -175,7 +171,40 @@ export default function ViewPerformers() {
                 </div>
             </div>
 
-            <SetupPopup stage={setupStage} setNotifsStatus={(perm) => {setSetupStage(perm === 'granted' ? SetupStage.NONE : perm === 'denied' ? SetupStage.NOTIFS_DENIED : SetupStage.ENABLE_NOTIFS)}} />
+            <Popup title={setupStage as string} open={!!setupStage} dimensions={'w-4/5 h-4/5'} closeable={false} >
+                {
+                    setupStage === SetupStage.OPEN_SAFARI ? (
+                        [
+                            <Image key="image" className="drop-shadow-lg mx-auto" src="/images/safari.png" width={110} height={0} alt="Safari icon" />,
+                            <p key="p" className="mx-4">Due to iOS limitations, please open this webpage in the Safari app to continue setup.</p>,
+                            <Link key="link" className="inline-block text-white w-fit mx-auto bg-blue-600 px-4 py-2 rounded-xl" href="https://apps.apple.com/us/app/safari/id1146562112">Open in App Store</Link>
+                        ]
+                    ) : setupStage === SetupStage.DOWNLOAD_PWA ? (
+                        [
+                            <Image key="image1" className="drop-shadow-lg mx-auto" width={200} height={0} src="/images/share_button.jpeg" alt="Share button" />,
+                            <Image key="image2" className="drop-shadow-lg mx-auto" src="/images/add_pwa.jpeg" width={150} height={0} alt="Add to home screen" />,
+                            <p key="p" className="mx-4">For notifications, please install this website as a Progressive Web App (PWA).</p>
+                        ]
+                    ) : setupStage === SetupStage.NOTIFS_DENIED ? (
+                        [
+                            <Image key="image" className="drop-shadow-lg my-auto mx-auto" width={125} height={0} src="/images/sad.png" alt="Sad face" />,
+                            <p key="p" className="mx-4 mb-auto">Notification permissions have been explicitly denied. Please enable them to continue.</p>
+                        ]
+                    ) : (
+                        [
+                            <Image key="image" className="drop-shadow-lg mx-auto" width={115} height={0} src="/images/notifs.png" alt="Notifications" />,
+                            <p key="p" className="mx-4">To be notified of upcoming performances, please enable notifications.</p>,
+                            <button key="button" className="inline-block text-white bg-blue-600 w-fit mx-auto px-4 py-2 rounded-xl" onClick={() => {
+                                Notification.requestPermission().then((perm) =>
+                                    setSetupStage(perm === 'granted' ? SetupStage.NONE :
+                                        perm === 'denied' ? SetupStage.NOTIFS_DENIED :
+                                            SetupStage.ENABLE_NOTIFS
+                                    ));
+                            }}>Enable Notifications</button>
+                        ]
+                    )
+                }
+            </Popup>
         </div>
     )
 }
