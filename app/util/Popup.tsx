@@ -1,20 +1,16 @@
-import {FaEllipsisVertical} from "react-icons/fa6";
-import React, {useEffect, useRef, useState} from "react";
-import Dropdown from "@/app/util/Dropdown";
-import scrollIntoView from "scroll-into-view-if-needed";
-import {Performer} from "@/app/util/firebase/init";
+import React, {useEffect, useRef} from "react";
 
-export default function Popup(props: {title: string, open: boolean, dimensions: string, colorScheme: {border: string, bg: string, text: string, textLight: string}, closeable?: boolean, onOpen?: ()=>void, onClose?: (cancelled: boolean)=>void, children: React.JSX.Element[]}) {
-    const {title, open, dimensions, colorScheme, onOpen, onClose} = props;
-    const closeable = props.closeable ?? true;
+export default function Popup(props: {title: string, open: boolean, colorScheme: {border: string, bg: string, text: string, textLight: string}, close?: (cancelled: boolean)=>void, children: React.JSX.Element[] | React.JSX.Element}) {
+    const {title, open, colorScheme, close} = props;
 
-    const [popupOpen, setPopupOpen] = useState(open);
     const childrenContainer = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        open && onOpen && onOpen();
+        if (!open) return;
 
-        setPopupOpen(open);
+        childrenContainer.current?.querySelectorAll("input")
+            .forEach(input => input.value = "");
+
         new Promise(r => setTimeout(r, 75)).then(() => {
             const input = childrenContainer.current?.querySelectorAll("input")[0];
             input?.focus();
@@ -22,30 +18,22 @@ export default function Popup(props: {title: string, open: boolean, dimensions: 
         });
     }, [open]);
 
-    function close(cancelled: boolean) {
-        childrenContainer.current?.querySelectorAll("input")
-            .forEach(input => input.value = "");
-
-        onClose && onClose(cancelled);
-        setPopupOpen(false);
-    }
-
     return (
         <div>
             {/* Popup */}
-            <div onClick={evt => {if (closeable && (evt.target as HTMLElement).id === "background") setPopupOpen(false)}} className={"z-50 w-full h-full fixed top-0 " + (popupOpen ? "opacity-100 visible transition-opacity duration-[0.3s]" : "opacity-0 invisible")} style={{background: "rgba(0, 0, 0, 0.5)", transition: popupOpen ? "" : "opacity 0.2s 0.1s, visibility 0.4s"}}>
-                <div id="background" className={"w-full h-full "+(popupOpen ? "transition-all duration-[0.4s] scale-100" : "transition-all duration-[0.3s] scale-[0.7]")}>
-                    <div className={`justify-between flex flex-col ${dimensions} fixed overflow-hidden -translate-x-1/2 -translate-y-1/2 rounded-[30px] left-1/2 top-1/2`} style={{background: "white"}}>
-                        <p className={"text-xl mt-5"} >{title}</p>
+            <div onClick={evt => {if (close && (evt.target as HTMLElement).id === "background") close(true)}} className={"z-50 w-full h-full fixed top-0 " + (open ? "opacity-100 visible transition-opacity duration-[0.3s]" : "opacity-0 invisible")} style={{background: "rgba(0, 0, 0, 0.5)", transition: open ? "" : "opacity 0.2s 0.1s, visibility 0.4s"}}>
+                <div id="background" className={"w-full h-full "+(open ? "transition-all duration-[0.4s] scale-100" : "transition-all duration-[0.3s] scale-[0.7]")}>
+                    <div className={`py-5 fixed overflow-hidden w-4/5 h-fit -translate-x-1/2 -translate-y-1/2 rounded-[30px] left-1/2 top-1/2`} style={{background: "white"}}>
+                        <p className={"text-xl"} >{title}</p>
 
-                        <div ref={childrenContainer} className={"flex flex-grow flex-col justify-between mb-6 mt-8"}>
+                        <div ref={childrenContainer} className={"flex flex-col justify-between mb-6 mt-2"}>
                             {props.children}
                         </div>
 
-                        {closeable &&
-                            <div className={"w-2/3 mb-5 mx-auto flex justify-between"}>
-                                <button onClick={() => close(true)} className={"inline-block w-16 bg-red-400 text-red-200 rounded-xl p-1.5"}>Cancel</button>
-                                <button onClick={() => close(false)} className={`inline-block w-16 bg-blue-400 text-blue-200 rounded-xl p-1.5`}>Select</button>
+                        {close &&
+                            <div className={"mx-3 flex justify-evenly"}>
+                                <button onClick={() => close(true)} className={`inline-block px-5 ${colorScheme.border} ${colorScheme.text} rounded-xl py-1.5`}>Cancel</button>
+                                <button onClick={() => close(false)} className={`inline-block px-5 ${colorScheme.bg} ${colorScheme.textLight} rounded-xl py-1.5`}>Submit</button>
                             </div>}
                     </div>
                 </div>

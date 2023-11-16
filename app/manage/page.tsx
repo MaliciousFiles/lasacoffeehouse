@@ -9,8 +9,9 @@ import Dropdown from "@/app/util/Dropdown";
 import {RiDraggable} from "react-icons/ri";
 import {FiCheck, FiEdit2, FiPlus, FiTrash2, FiX} from "react-icons/fi";
 import {
+    getNumFCM,
     removePerformer,
-    renamePerformer,
+    renamePerformer, sendNotification,
     setCurrentPerformer,
     updateClients,
     updatePerformers
@@ -21,6 +22,7 @@ import scrollIntoView from "scroll-into-view-if-needed";
 import Loading from "@/app/util/Loading";
 import Popup from "@/app/util/Popup";
 import {getColorScheme} from "@/app/util/util";
+import Image from "next/image";
 
 export default function ManagePerformers() {
     const data = useContext(FirebaseContext);
@@ -237,6 +239,9 @@ export default function ManagePerformers() {
     const color = getColorScheme(selectedStage)
 
     const [notifPopup, setNotifPopup] = useState(false);
+    const [notifConfirm, setNotifConfirm] = useState(false);
+    const notifTitle = useRef<HTMLInputElement>(null);
+    const notifBody = useRef<HTMLInputElement>(null);
 
     const currentPerformer = data[stage].performers[data[stage].currentPerformer];
 
@@ -247,15 +252,36 @@ export default function ManagePerformers() {
                 <button className={"bg-gray-100 rounded-2xl text-xs text-gray-400 px-3 py-1"} onClick={()=>setLoggedIn(false)}>Log Out</button>
             </div>
 
-            {/*TODO: popup */}
-            <Popup title={"Send Notification"} open={notifPopup} dimensions={'w-4/5 h-2/5'} colorScheme={color} onClose={() => setNotifPopup(false)}>
+            <Popup title={"Send Notification"} open={notifPopup} colorScheme={color}
+                   close={(cancelled: boolean) => {
+                       setNotifPopup(false);
+                       !cancelled && setNotifConfirm(true);
+                   }}>
                 <div className={"mx-5 mt-3 flex flex-col"}>
                     <p className={"text-sm text-left"}>Notification Title</p>
-                    <input className={"border text-xs border-gray-200 rounded-md py-2 px-3"} />
+                    <input ref={notifTitle} className={"border text-xs border-gray-200 rounded-md py-2 px-3"} />
                 </div>
                 <div className={"mx-5 mt-3 flex flex-col"}>
                     <p className={"text-sm text-left"}>Notification Body</p>
-                    <input className={"border text-xs border-gray-200 rounded-md py-2 px-3"} />
+                    <input ref={notifBody} className={"border text-xs border-gray-200 rounded-md py-2 px-3"} />
+                </div>
+            </Popup>
+            <Popup title={"Confirm Notification"} open={notifConfirm} colorScheme={color}
+                   close={(cancelled: boolean) => {
+                       !cancelled && updateFirebase(jwt =>
+                           sendNotification(jwt, notifTitle.current!.value, notifBody.current!.value));
+                       setNotifConfirm(false);
+                   }}>
+                {/* TODO: fix this, and probably make all client-side FCM a server function to make it more secure */}
+                <p className={"mx-6 mb-5"}>Are you sure you want to notify <b>{0}</b> people?</p>
+                <div className={"mx-5 h-16 rounded-xl border border-gray-400 flex"}>
+                    <div className={"p-2 flex-shrink-0"}>
+                        <img src={'/images/logo.svg'} alt={'Logo'} className={"h-full w-auto rounded-lg"} />
+                    </div>
+                    <div className={"mt-1.5 text-left overflow-hidden"}>
+                        <p className={"font-semiheavy text-sm line-clamp-1 text-ellipsis"}>{notifTitle.current?.value}</p>
+                        <p className={"text-xs line-clamp-2 text-ellipsis"}>{notifBody.current?.value}</p>
+                    </div>
                 </div>
             </Popup>
 
@@ -303,75 +329,6 @@ export default function ManagePerformers() {
                     <div key={"spacer"+i} className={"w-full h-px bg-gray-200"} />
                 ])).slice(0, -1)}
             </div>
-        {/*<div className="h-full w-full">
-            <Loading enabled={firebaseLoading} />
-
-            <p className="text-center text-2xl m-0 py-2">Manager Dashboard</p>
-
-            <Dropdown options={Object.keys(data)} onValueChanged={stage => setStage(stage)} />
-            <SetCurrentPerformer performers={data[stage].performers} performer={data[stage].currentPerformer} setPerformer={(p: number) => {
-                updateFirebase(jwt => setCurrentPerformer(jwt, stage, p));
-            }} />
-
-            <AddPerformerPopup addingPerformer={addingPerformer} cancel={()=>setAddingPerformer(-1)} add={(name: string, artists: string[]) => {
-                updateFirebase(jwt => updatePerformers(jwt, stage, [
-                        ...data[stage].performers.slice(0, addingPerformer),
-                        {uid: genUID(), name, artists},
-                        ...data[stage].performers.slice(addingPerformer)
-                    ]));
-            }}/>
-            <div ref={performersContainer} className={"shadow-inner mt-5 text-left bg-gray-200 h-3/5 overflow-y-auto w-4/5 m-auto rounded-2xl" + (dragging === -1 ? "" : " touch-none")}>
-                {genDivider(-1)}
-                {([] as any[]).concat(...data[stage].performers.map((p, i) =>
-                    [
-                        <div key={p.name+i} >
-                            { i === dragging && <div className={"table"}><p className={"p-3"}>&nbsp;</p></div>}
-                            <div className={"table select-none" + (i === dragging ? " fixed bg-gray-200 rounded-s shadow-2xl z-10" : "")}>
-                                <div className="table-cell whitespace-nowrap">
-                                    <div
-                                        onTouchMove={(evt) => drag(i, evt)}
-                                        onMouseMove={(evt) => drag(i, undefined, evt)}
-                                        onTouchStart={(evt) => startDrag(i, evt)}
-                                        onMouseDown={(evt) => startDrag(i, undefined, evt)}
-                                        onTouchEnd={stopDrag}
-                                        onMouseUp={stopDrag}
-                                        className={"ml-2 inline-block translate-y-0.5 touch-none"}><RiDraggable /></div>
-                                    <p
-                                        id={"name"+i}
-                                        className={"my-2 outline-0 inline-block p-3" + (editingName === i ? " bg-gray-300 rounded-xl" : "") + (data[stage].currentPerformer === i ? " font-semibold" : "")}
-                                        contentEditable={editingName === i}
-                                        onBlur={editingName === i ? () => {new Promise(async () => {
-                                            await new Promise((r) => setTimeout(r, 1));
-
-                                            // only reset if one of the buttons wasn't pressed (this was overriding their onClick)
-                                            if (document.activeElement?.parentElement?.parentElement?.id !== 'buttons') {
-                                                confirm(false);
-                                            }
-                                        }).then()} : undefined}
-                                        onKeyDown={(evt) => {if (evt.key === 'Enter') {evt.preventDefault(); confirm(true);}}}
-                                        >{p.name}</p>
-                                </div>
-                                <div id="buttons" className={"table-cell w-full text-right translate-y-0.5"}>
-                                    {editingName === i || removingPerformer === i ?
-                                        <div>
-                                            <button className={"mr-2 bg-green-400 text-green-200 rounded-lg p-2"}
-                                                    onClick={() => confirm(true)}><FiCheck /></button>
-                                            <button className={"mr-3 bg-red-400 text-red-200 rounded-lg p-2"}
-                                                    onClick={() => confirm(false)}><FiX /></button>
-                                        </div> :
-                                        <div>
-                                            <button className={"mr-2 bg-blue-400 text-blue-200 rounded-lg p-2"}
-                                                    onClick={() => setEditingName(i)}><FiEdit2 /></button>
-                                            <button className={"mr-3 bg-red-400 text-red-200 rounded-lg p-2"}
-                                                    onClick={() => setRemovingPerformer(i)}><FiTrash2 /></button>
-                                        </div>}
-                                </div>
-                            </div>
-                        </div>,
-                        genDivider(i)
-                    ]))}
-            </div>
-        </div>*/}
         </div>
     )
 }

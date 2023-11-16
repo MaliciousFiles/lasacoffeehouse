@@ -87,6 +87,8 @@ export default function ViewPerformers() {
 
     const [cohort, setCohort] = useState<-1|1>(1);
 
+    const gradientRef = useRef<HTMLDivElement>(null);
+
     // scroll to top when view changes
     const scrollView = useRef<HTMLDivElement>(null);
     useEffect(() => {
@@ -154,8 +156,9 @@ export default function ViewPerformers() {
                     }
 
                     {/* width = width of button + mr of button - right of this*/}
-                    <div className={"fixed pointer-events-none z-10 bottom-0 right-2.5 w-[calc(20%+1rem-0.625rem)] h-[calc(55%-4rem)] bg-gradient-to-b from-transparent to-[#ffffffcf]"} />
+                    <div ref={gradientRef} className={"fixed pointer-events-none z-10 right-2.5 w-[calc(20%+1rem-0.625rem)] bottom-0 9 h-[calc(55%-4rem-0*2.25rem)] bg-gradient-to-b from-transparent to-[#ffffffcf]"} />
                 </div>
+                {/* TODO: make whole page wide */}
                 <div className={"flex justify-evenly bg-white w-4/5 h-11 drop-shadow-lg z-40 rounded-3xl absolute bottom-3 left-1/2 -translate-x-1/2"}>
                     {Object.keys(data).map((s, i) =>
                         <div key={"stage"+s} onClick={()=>setStage(i)} className={`m-1.5 flex-grow flex ${s == stage ? "bg-gray-100" : "bg-gray-50"} rounded-3xl`} >
@@ -169,15 +172,26 @@ export default function ViewPerformers() {
                         </div>
                     )}
                 </div>
+                {/*<div className={"flex h-9 flex-shrink-0"}>*/}
+                {/*    {Object.keys(data).map((s, i) => {*/}
+                {/*        let color = getColorScheme(i);*/}
+                {/*        return (*/}
+                {/*            <div key={"stage" + s} onClick={() => setStage(i)} className={`flex-grow ${selectedStage == i ? color.bgLightSelected : color.bgLight}`}>*/}
+                {/*                <p className={`text-gray-600 my-auto font-heavy text-sm`}>{s}</p>*/}
+                {/*            </div>*/}
+                {/*        )*/}
+                {/*    })}*/}
+                {/*</div>*/}
             </div>
 
-            <Popup title={setupStage as string} open={!!setupStage} dimensions={'w-4/5 h-4/5'} closeable={false} colorScheme={color} >
+            {/* TODO: borken */}
+            <Popup title={setupStage as string} open={!!setupStage} colorScheme={color} >
                 {
                     setupStage === SetupStage.OPEN_SAFARI ? (
                         [
                             <Image key="image" className="drop-shadow-lg mx-auto" src="/images/safari.png" width={110} height={0} alt="Safari icon" />,
                             <p key="p" className="mx-4">Due to iOS limitations, please open this webpage in the Safari app to continue setup.</p>,
-                            <Link key="link" className="inline-block text-white w-fit mx-auto bg-blue-600 px-4 py-2 rounded-xl" href="https://apps.apple.com/us/app/safari/id1146562112">Open in App Store</Link>
+                            <Link key="link" className="inline-block text-white w-fit mx-auto bg-blue-600 px-4 py-2 rounded-xl" href="https://apps.apple.com/us/app/safari/id1146562112">Show in App Store</Link>
                         ]
                     ) : setupStage === SetupStage.DOWNLOAD_PWA ? (
                         [

@@ -51,12 +51,11 @@ export async function removePerformer(jwt: string, stage: string, performers: Pe
     await database.ref(`/data/${stage}/performers`).set(performers);
 }
 
-export async function updateClients(jwt: string, stage: string, current: Performer, next: Performer) {
-    if (await isInvalid(jwt)) return;
+async function getFCM() {
     const database = getDatabase(firebase);
-    const messaging = getMessaging(firebase);
 
     const fcm = (await database.ref("/fcm").get()).val();
+    let out: {[index: string]: any} = {};
 
     for (let token in fcm) {
         let timestamp = parseInt(fcm[token]['last_used']) || 0;
@@ -66,6 +65,46 @@ export async function updateClients(jwt: string, stage: string, current: Perform
             continue;
         }
 
+        out[token] = {...fcm[token], last_used: undefined};
+    }
+
+    return out;
+}
+
+export async function getNumFCM(jwt: string) {
+    if (await isInvalid(jwt)) return;
+
+    return Object.keys((await getFCM())).length;
+}
+
+export async function sendNotification(jwt: string, title: string, body: string) {
+    if (await isInvalid(jwt)) return;
+    const database = getDatabase(firebase);
+    const messaging = getMessaging(firebase);
+
+    const fcm = await getFCM();
+
+    for (let token in fcm) {
+        messaging.send({
+            token,
+            notification: {
+                title: title,
+                body: body
+            }
+        }).then().catch(() => {
+                return database.ref(`/fcm/${token}`).remove();
+            });
+    }
+}
+
+export async function updateClients(jwt: string, stage: string, current: Performer, next: Performer) {
+    if (await isInvalid(jwt)) return;
+    const database = getDatabase(firebase);
+    const messaging = getMessaging(firebase);
+
+    const fcm = await getFCM();
+
+    for (let token in fcm) {
         if (stage in fcm[token]) {
             for (let i = 0; i <= 1; i++) {
                 const performer = i == 0 ? current : next;
