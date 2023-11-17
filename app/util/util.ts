@@ -6,6 +6,10 @@ export enum SetupStage {
     ENABLE_NOTIFS="Enable Notifications"
 }
 
+export function parseArtists(string: string) {
+    return string.split(/, */).map((artist) => artist.trim()).filter(s => s != "");
+}
+
 export function getColorScheme(stageIdx: number) {
     return {
         bg: stageIdx == 0 ? 'bg-pink-600' : 'bg-emerald-600',

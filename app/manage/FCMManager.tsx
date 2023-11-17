@@ -36,11 +36,12 @@ export async function updatePerformers(jwt: string, stage: string, performers: P
     await database.ref(`/data/${stage}/performers`).set(performers);
 }
 
-export async function renamePerformer(jwt: string, stage: string, performer: number, name: string) {
+export async function updatePerformer(jwt: string, stage: string, performer: number, name: string, artists: string[]) {
     if (await isInvalid(jwt)) return;
     const database = getDatabase(firebase);
 
-    await database.ref(`/data/${stage}/performers/${performer}`).set(name);
+    await database.ref(`/data/${stage}/performers/${performer}/name`).set(name);
+    await database.ref(`/data/${stage}/performers/${performer}/artists`).set(artists);
 }
 
 export async function removePerformer(jwt: string, stage: string, performers: Performer[], performer: number) {

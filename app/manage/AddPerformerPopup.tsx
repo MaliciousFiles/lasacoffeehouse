@@ -2,6 +2,7 @@ import React, {useEffect, useRef, useState} from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import Image from "next/image";
+import {parseArtists} from "@/app/util/util";
 
 export default function AddPerformerPopup(props: {addingPerformer: number, cancel: ()=>void, add: (name: string, artists: string[])=>void}) {
     const {addingPerformer} = props;
@@ -20,7 +21,7 @@ export default function AddPerformerPopup(props: {addingPerformer: number, cance
     }
 
     const add = () => {
-        props.add(nameRef.current!.value, artistRef.current!.value.split(/, */).map(s=>s.trim()).filter(s => s != ""));
+        props.add(nameRef.current!.value, parseArtists(artistRef.current!.value));
         cancel();
     }
 
