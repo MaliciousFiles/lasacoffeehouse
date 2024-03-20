@@ -184,31 +184,30 @@ export default function ViewPerformers() {
                 {/*</div>*/}
             </div>
 
-            {/* TODO: borken */}
             <Popup title={setupStage as string} open={!!setupStage} colorScheme={color} >
                 {
                     setupStage === SetupStage.OPEN_SAFARI ? (
                         [
-                            <Image key="image" className="drop-shadow-lg mx-auto" src="/images/safari.png" width={110} height={0} alt="Safari icon" />,
-                            <p key="p" className="mx-4">Due to iOS limitations, please open this webpage in the Safari app to continue setup.</p>,
-                            <Link key="link" className="inline-block text-white w-fit mx-auto bg-blue-600 px-4 py-2 rounded-xl" href="https://apps.apple.com/us/app/safari/id1146562112">Show in App Store</Link>
+                            <Image key="image" className="drop-shadow-lg mx-auto" src="/images/safari.png" width={100} height={0} alt="Safari icon" />,
+                            <p key="p" className="mx-4 mt-4">Due to iOS limitations, please open this webpage in the Safari app to continue setup.</p>,
+                            <Link key="link" className="inline-block text-white w-fit mx-auto mt-8 bg-blue-600 px-4 py-2 rounded-xl" href="https://apps.apple.com/us/app/safari/id1146562112">Open Safari</Link>
                         ]
                     ) : setupStage === SetupStage.DOWNLOAD_PWA ? (
                         [
                             <Image key="image1" className="drop-shadow-lg mx-auto" width={200} height={0} src="/images/share_button.jpeg" alt="Share button" />,
-                            <Image key="image2" className="drop-shadow-lg mx-auto" src="/images/add_pwa.jpeg" width={150} height={0} alt="Add to home screen" />,
-                            <p key="p" className="mx-4">For notifications, please install this website as a Progressive Web App (PWA).</p>
+                            <Image key="image2" className="drop-shadow-lg mx-auto mt-4" src="/images/add_pwa.jpeg" width={150} height={0} alt="Add to home screen" />,
+                            <p key="p" className="mx-4 mt-6">For notifications, please install this website as a Progressive Web App (PWA).</p>
                         ]
                     ) : setupStage === SetupStage.NOTIFS_DENIED ? (
                         [
-                            <Image key="image" className="drop-shadow-lg my-auto mx-auto" width={125} height={0} src="/images/sad.png" alt="Sad face" />,
-                            <p key="p" className="mx-4 mb-auto">Notification permissions have been explicitly denied. Please enable them to continue.</p>
+                            <Image key="image" className="drop-shadow-lg my-auto mx-auto" width={100} height={0} src="/images/sad.png" alt="Sad face" />,
+                            <p key="p" className="mx-4 mb-auto mt-4">Notification permissions have been explicitly denied. Please enable them in Settings to continue.</p>,
                         ]
                     ) : (
                         [
-                            <Image key="image" className="drop-shadow-lg mx-auto" width={115} height={0} src="/images/notifs.png" alt="Notifications" />,
-                            <p key="p" className="mx-4">To be notified of upcoming performances, please enable notifications.</p>,
-                            <button key="button" className="inline-block text-white bg-blue-600 w-fit mx-auto px-4 py-2 rounded-xl" onClick={() => {
+                            <Image key="image" className="drop-shadow-lg mx-auto -my-4" width={105} height={0} src="/images/notifs.png" alt="Notifications" />,
+                            <p key="p" className="mx-4 mt-5">To be notified of upcoming performances, please enable notifications.</p>,
+                            <button key="button" className="inline-block text-white bg-blue-600 w-fit mx-auto px-4 py-2 rounded-xl mt-8" onClick={() => {
                                 Notification.requestPermission().then((perm) =>
                                     setSetupStage(perm === 'granted' ? SetupStage.NONE :
                                         perm === 'denied' ? SetupStage.NOTIFS_DENIED :

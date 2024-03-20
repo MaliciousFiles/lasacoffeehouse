@@ -262,7 +262,7 @@ export default function ManagePerformers() {
                     <button className={`px-4 py-2 rounded-lg ${color.border} ${color.text}`}
                             onClick={() => updateFirebase(jwt => setCurrentPerformer(jwt, stage, Math.max(0, data[stage].currentPerformer-1)))}>Previous</button>
                     <button className={`px-4 py-2 rounded-lg ${color.border} ${color.text}`}
-                            onClick={/*TODO*/undefined}>Change</button>
+                            onClick={() => {}}>Change</button>
                 </div>
             </div>
 

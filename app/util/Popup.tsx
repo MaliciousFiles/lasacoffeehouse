@@ -40,7 +40,7 @@ export default function Popup(props: {title: string, open: boolean, colorScheme:
                     <div className={`py-5 fixed overflow-hidden w-4/5 h-fit -translate-x-1/2 -translate-y-1/2 rounded-[30px] left-1/2 top-1/2`} style={{background: "white"}}>
                         <p className={"text-xl"} >{title}</p>
 
-                        <div ref={childrenContainer} className={"flex flex-col justify-between mb-6 mt-2"}>
+                        <div ref={childrenContainer} className={"flex flex-col justify-between mt-4"}>
                             {props.children}
                         </div>
 
