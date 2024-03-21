@@ -7,6 +7,7 @@ import {getAuth} from "firebase-admin/auth";
 import {AES, enc} from "crypto-js";
 import {Performer} from "@/app/util/firebase/init";
 
+// console.log(enc.Utf8.stringify(AES.decrypt(process.env.FIREBASE_ADMIN_DATA!, enc.Utf8.parse(process.env.FIREBASE_ADMIN_CRED!.slice(16)), {iv: enc.Utf8.parse(process.env.FIREBASE_ADMIN_CRED!.slice(0, 16))})))
 const firebase = getApps().find(a => a.name == "Admin App") ??
     initializeApp({
         credential: cert(JSON.parse(enc.Utf8.stringify(AES.decrypt(process.env.FIREBASE_ADMIN_DATA!, enc.Utf8.parse(process.env.FIREBASE_ADMIN_CRED!.slice(16)), {iv: enc.Utf8.parse(process.env.FIREBASE_ADMIN_CRED!.slice(0, 16))})))),

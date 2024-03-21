@@ -97,10 +97,20 @@ export default function ViewPerformers() {
 
     const color = getColorScheme(selectedStage);
 
+    const backgroundRef = useRef<HTMLDivElement>(null);
+
+    const image = performers[currentPerformer]?.image;
+    useEffect(() => {
+        if (!backgroundRef.current) return;
+
+        backgroundRef.current.style.backgroundImage = image ? `url(${image.src})` : "";
+        (backgroundRef.current.children[0] as HTMLDivElement).style.color = image?.textColor ?? "";
+    }, [image, backgroundRef]);
+
     return (
-        <div className={"bg-[--navy] flex flex-col h-full"} >
-            <div className={"h-[45%] flex"}>
-                <div className={"flex flex-col justify-evenly h-4/5 m-auto text-[--light-gray]"}>
+        <div ref={backgroundRef} className={`bg-[--navy] bg-[center_top] bg-[length:auto_47%] flex flex-col h-full`} >
+            <div className={"h-[45%] text-[--light-gray] flex"}>
+                <div className={"flex flex-col justify-evenly h-4/5 m-auto"}>
                     <p className={"text-sm font-semiheavy"}>Currently Performing</p>
                     <p className={"text-3xl m-1 font-heavy"}>{performers[currentPerformer]?.name}</p>
                     <p className={"text-sm mx-auto w-4/5 font-semiheavy"}>{performers[currentPerformer]?.artists && `Performed by ${performers[currentPerformer]?.artists.join(',')}`}</p>
@@ -174,7 +184,7 @@ export default function ViewPerformers() {
             {/*</div>*/}
             <StageSelector stages={Object.keys(data)} selected={selectedStage} setSelected={setStage} className={"h-11 z-50"} />
 
-            <Popup title={setupStage as string} open={!!setupStage} colorScheme={color} >
+            <Popup title={setupStage as string} open={false && !!setupStage} colorScheme={color} >
                 {
                     setupStage === SetupStage.DOWNLOAD_PWA ? (
                         [
