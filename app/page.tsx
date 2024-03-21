@@ -105,13 +105,16 @@ export default function ViewPerformers() {
     useEffect(() => {
         if (!backgroundRef.current) return;
 
-        backgroundRef.current.style.backgroundImage = image ? `url(${image})` : "";
+        backgroundRef.current.style.backgroundImage = image ? `url(${image})` : '';
+        backgroundRef.current.style.backgroundSize = image ? 'cover' : ''
+        backgroundRef.current.style.backgroundPosition = image ? 'center top' : ''
     }, [image, backgroundRef]);
 
     return (
-        <div ref={backgroundRef} className={`bg-[--navy] bg-no-repeat bg-[center_top] bg-[length:auto_36%] flex flex-col h-full`} >
+        <div className={`flex flex-col h-full`} >
+            <div ref={backgroundRef} className={`absolute w-full h-[37%] bg-[--navy] bg-[url(/images/logo.svg)] bg-[length:auto_42%] bg-no-repeat bg-center`} />
             <div className={`h-[35%]`} />
-            <div className={"bg-white h-[65%] rounded-t-2xl flex flex-col overflow-hidden"}>
+            <div className={"bg-white z-10 h-[65%] rounded-t-2xl flex flex-col overflow-hidden"}>
                 <div
                     className={`flex flex-col ${color.performerText} justify-evenly w-full flex-shrink-0 h-20 py-3 bg-gradient-to-b ${color.performerBg} m-auto`}>
                     {/*<p className={"text-sm font-semiheavy"}>Currently Performing</p>*/}
