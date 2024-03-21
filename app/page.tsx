@@ -25,6 +25,8 @@ export default function ViewPerformers() {
 
     // sync to FB and localStorage every time `notifs` is updated
     useEffect(() => {
+        if (setupStage != SetupStage.NONE) return;
+
         for (const stage in notifs) {
             localStorage.setItem(`lasacoffeehouse:notifs:${stage}`, JSON.stringify(notifs[stage]));
 
@@ -32,7 +34,7 @@ export default function ViewPerformers() {
                 set(ref(getDatabase(firebase), `/fcm/${fbToken}/${stage}`), notifs[stage]).then();
             }
         }
-    }, [fbToken, notifs])
+    }, [setupStage, fbToken, notifs])
 
     // load from localStorage and determine setup stage
     useEffect(() => {
