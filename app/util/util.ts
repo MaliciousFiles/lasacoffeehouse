@@ -1,6 +1,5 @@
 export enum SetupStage {
     NONE="",
-    OPEN_SAFARI="Open in Safari",
     DOWNLOAD_PWA="Add to Home Screen",
     NOTIFS_DENIED="Notifications Denied",
     ENABLE_NOTIFS="Enable Notifications"

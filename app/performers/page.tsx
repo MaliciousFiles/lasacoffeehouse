@@ -48,7 +48,6 @@ export default function ViewPerformers() {
                 let pwa = window.matchMedia('(display-mode: standalone)').matches
 
                 setSetupStage(notifExists && Notification.permission === 'granted' ? SetupStage.NONE :
-                    iOS && !notifExists ? SetupStage.OPEN_SAFARI :
                     iOS && !pwa ? SetupStage.DOWNLOAD_PWA :
                         Notification.permission === 'denied' ? SetupStage.NOTIFS_DENIED :
                             SetupStage.ENABLE_NOTIFS);
@@ -178,27 +177,22 @@ export default function ViewPerformers() {
 
             <Popup title={setupStage as string} open={!!setupStage} colorScheme={color} >
                 {
-                    setupStage === SetupStage.OPEN_SAFARI ? (
-                        [
-                            <Image key="image" className="drop-shadow-lg mx-auto" src="/images/safari.png" width={100} height={0} alt="Safari icon" />,
-                            <p key="p" className="mx-4 mt-4">Due to iOS limitations, please open this webpage in the Safari app to continue setup.</p>,
-                            <Link key="link" className="inline-block text-white w-fit mx-auto mt-8 bg-blue-600 px-4 py-2 rounded-xl" href="https://apps.apple.com/us/app/safari/id1146562112">Open Safari</Link>
-                        ]
-                    ) : setupStage === SetupStage.DOWNLOAD_PWA ? (
+                    setupStage === SetupStage.DOWNLOAD_PWA ? (
                         [
                             <Image key="image1" className="drop-shadow-lg mx-auto" width={200} height={0} src="/images/share_button.jpeg" alt="Share button" />,
                             <Image key="image2" className="drop-shadow-lg mx-auto mt-4" src="/images/add_pwa.jpeg" width={150} height={0} alt="Add to home screen" />,
-                            <p key="p" className="mx-4 mt-6">For notifications, please install this website as a Progressive Web App (PWA).</p>
+                            <p key="p" className="mx-4 mt-6">To enable notifications, install this website as a Progressive Web App.</p>,
+                            <p key="p2" className={"mx-4 mt-3"}>Tap Share, and then &quot;Add to Home Screen&quot; (Safari pictured above).</p>
                         ]
                     ) : setupStage === SetupStage.NOTIFS_DENIED ? (
                         [
                             <Image key="image" className="drop-shadow-lg my-auto mx-auto" width={100} height={0} src="/images/sad.png" alt="Sad face" />,
-                            <p key="p" className="mx-4 mb-auto mt-4">Notification permissions have been explicitly denied. Please enable them in Settings to continue.</p>,
+                            <p key="p" className="mx-4 mb-auto mt-4">Notification permissions have been explicitly denied. Enable them in Settings to continue.</p>,
                         ]
                     ) : (
                         [
                             <Image key="image" className="drop-shadow-lg mx-auto -my-4" width={105} height={0} src="/images/notifs.png" alt="Notifications" />,
-                            <p key="p" className="mx-4 mt-5">To be notified of upcoming performances, please enable notifications.</p>,
+                            <p key="p" className="mx-4 mt-5">To be notified of upcoming performances, allow notifications.</p>,
                             <button key="button" className="inline-block text-white bg-blue-600 w-fit mx-auto px-4 py-2 rounded-xl mt-8" onClick={() => {
                                 Notification.requestPermission().then((perm) =>
                                     setSetupStage(perm === 'granted' ? SetupStage.NONE :
