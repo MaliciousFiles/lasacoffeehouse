@@ -21,7 +21,7 @@ export type Performer = {
     uid: string
     name: string
     artists: string[]
-    image?: {src: string, textColor?: string}
+    image?: string
 }
 
 export type Stage = {

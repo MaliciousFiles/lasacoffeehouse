@@ -103,8 +103,7 @@ export default function ViewPerformers() {
     useEffect(() => {
         if (!backgroundRef.current) return;
 
-        backgroundRef.current.style.backgroundImage = image ? `url(${image.src})` : "";
-        (backgroundRef.current.children[0] as HTMLDivElement).style.color = image?.textColor ?? "";
+        backgroundRef.current.style.backgroundImage = image ? `url(${image})` : "";
     }, [image, backgroundRef]);
 
     return (
