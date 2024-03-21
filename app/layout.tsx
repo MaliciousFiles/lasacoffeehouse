@@ -26,7 +26,7 @@ export default async function RootLayout({
                 return obj;
             }, data);
         })()}>
-            <body className={"w-full h-full overflow-hidden " + inter.className}>{children}</body>
+            <body className={"w-full h-full " + inter.className}>{children}</body>
         </BaseFirebaseComponent>
         </html>
     )

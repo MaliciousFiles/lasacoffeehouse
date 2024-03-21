@@ -13,14 +13,6 @@ export default function Popup(props: {title: string, open: boolean, colorScheme:
 
         childrenContainer.current?.querySelectorAll("input")
             .forEach(input => input.value = defaultValues[input.alt] ?? "");
-
-        new Promise(r => setTimeout(r, 75)).then(() => {
-            const input = childrenContainer.current?.querySelectorAll("input")[0];
-            if (input) {
-                input.focus();
-                input.selectionStart = input.selectionEnd = input.value.length;
-            }
-        });
     }, [open]);
 
     let closeable = !!props.close;

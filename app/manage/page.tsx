@@ -7,14 +7,14 @@ import SignInPage from "@/app/manage/SignInPage";
 import FirebaseContext from "@/app/util/firebase/FirebaseContext";
 import Dropdown from "@/app/util/Dropdown";
 import {RiDraggable} from "react-icons/ri";
-import {FiCheck, FiEdit2, FiPlus, FiTrash, FiTrash2, FiX} from "react-icons/fi";
+import {FiCheck, FiEdit, FiEdit2, FiPlus, FiTrash, FiTrash2, FiX} from "react-icons/fi";
 import {
     getNumFCM,
     removePerformer,
     updatePerformer, sendNotification,
     setCurrentPerformer,
     updateClients,
-    updatePerformers
+    updatePerformers, isValidJwt
 } from "@/app/manage/FCMManager";
 import AddPerformerPopup from "@/app/manage/AddPerformerPopup";
 import SetCurrentPerformer from "@/app/manage/SetCurrentPerformer";
@@ -23,6 +23,8 @@ import Loading from "@/app/util/Loading";
 import Popup, {InputList} from "@/app/util/Popup";
 import {getColorScheme, parseArtists} from "@/app/util/util";
 import Image from "next/image";
+import {cookies} from "next/headers";
+import {isValid} from "zod";
 
 export default function ManagePerformers() {
     const data = useContext(FirebaseContext);
@@ -36,6 +38,9 @@ export default function ManagePerformers() {
             let performers = data[stage].performers;
 
             updateFirebase(jwt => updateClients(jwt, stage, performers[current], performers[current+1]), false);
+        } else {
+            // since they didn't update it, visual scroll
+            scroll(true);
         }
 
         setFirebaseLoading(false);
@@ -75,11 +80,7 @@ export default function ManagePerformers() {
 
     const scrollBy = useRef(0);
 
-    // TODO: error when dragging last performer?
-    // TODO: 2-line artist string extends div
     // TODO: stage selector
-    // TODO: edit performer popup
-    // TODO: change current performer popup
 
     const movePerformer = (parent: HTMLElement, idx: number, direction: 1 | -1) => {
         let pos = performerPositions.current[idx]
@@ -120,7 +121,7 @@ export default function ManagePerformers() {
 
         if (currentIdx > 0 && row.offsetTop + row.offsetHeight + scroll < row.parentElement!.offsetTop) {
             movePerformer(performersContainer.current!, idx, -1);
-        } else if (currentIdx < data[stage].performers.length && row.offsetTop + scroll > row.parentElement!.offsetTop + row.parentElement!.offsetHeight) {
+        } else if (currentIdx < data[stage].performers.length-1 && row.offsetTop + scroll > row.parentElement!.offsetTop + row.parentElement!.offsetHeight) {
             movePerformer(performersContainer.current!, idx, 1);
         }
     }
@@ -194,15 +195,13 @@ export default function ManagePerformers() {
             scrollMode: ifNeeded ? 'if-needed' : 'always'
         });
     }
-
-    // scroll to current performer when data changes
-    useEffect(() => scroll(true), [data]);
     useEffect(() => scroll(false), [loggedIn, stage]);
 
     const color = getColorScheme(selectedStage)
 
     const [notifPopup, setNotifPopup] = useState(false);
     const [notifConfirm, setNotifConfirm] = useState<{title: string, body: string}>();
+    const [numFCM, setNumFCM] = useState(-1);
 
     const [editingPerformer, setEditingPerformer] = useState(-1);
 
@@ -212,35 +211,36 @@ export default function ManagePerformers() {
         <div className={"bg-white flex w-full h-full flex-col"}>
             <div className={"flex justify-between flex-shrink-0 px-3 py-2"}>
                 <p className={"text-sm my-auto text-gray-800 font-semiheavy mx-0"}>Manager Hub</p>
-                <button className={"bg-gray-100 rounded-2xl text-xs text-gray-400 px-3 py-1"} onClick={()=>setLoggedIn(false)}>Log Out</button>
+                <button className={"bg-gray-100 rounded-2xl text-xs text-gray-600 px-3 py-1"} onClick={()=>setLoggedIn(false)}>Log Out</button>
             </div>
 
             <Popup title={"Send Notification"} open={notifPopup} colorScheme={color}
                    close={(cancelled: boolean, inputs: InputList) => {
                        setNotifPopup(false);
-                       !cancelled && setNotifConfirm(inputs as {title: string, body: string});
+                       if (!cancelled) {
+                           updateFirebase(async jwt => setNumFCM((await getNumFCM(jwt))!))
+                           setNotifConfirm(inputs as { title: string, body: string });
+                       }
                    }}>
                 <div className={"mx-5 mt-3 flex flex-col"}>
                     <p className={"text-sm text-left"}>Notification Title</p>
-                    <input alt={"title"} className={"border text-xs border-gray-200 rounded-md py-2 px-3"} />
+                    <input autoCorrect={'on'} alt={"title"} className={"border text-xs border-gray-200 rounded-md py-2 px-3"} />
                 </div>
-                <div className={"mx-5 mt-3 flex flex-col"}>
+                <div className={"mx-5 mt-3 mb-6 flex flex-col"}>
                     <p className={"text-sm text-left"}>Notification Body</p>
-                    <input alt={"body"} className={"border text-xs border-gray-200 rounded-md py-2 px-3"} />
+                    <input autoCorrect={'on'} alt={"body"} className={"border text-xs border-gray-200 rounded-md py-2 px-3"} />
                 </div>
             </Popup>
-            <Popup title={"Confirm Notification"} open={notifConfirm != undefined} colorScheme={color}
+            <Popup title={"Confirm Notification"} open={numFCM != -1 && notifConfirm != undefined} colorScheme={color}
                    close={(cancelled: boolean) => {
                        !cancelled && updateFirebase(jwt =>
                            sendNotification(jwt, notifConfirm!.title, notifConfirm!.body));
                        setNotifConfirm(undefined);
                    }}>
-                {/* TODO: fix this, and probably make all client-side FCM a server function to make it more secure */}
-                <p className={"mx-6 mb-5"}>Are you sure you want to notify <b>{0}</b> people?</p>
-                <div className={"mx-5 h-16 rounded-xl border border-gray-400 flex"}>
-                    <div className={"p-2 flex-shrink-0"}>
-                        <img src={'/images/logo.svg'} alt={'Logo'} className={"h-full w-auto rounded-lg"} />
-                    </div>
+
+                <p className={"mx-6 mb-5"}>Are you sure you want to notify <b>{numFCM}</b> people?</p>
+                <div className={"mx-5 h-16 mb-6 rounded-xl border border-gray-400 flex"}>
+                    <img src={'/images/logo.svg'} alt={'Logo'} className={"p-2 flex-shrink-0 h-full w-auto rounded-lg"} />
                     <div className={"mt-1.5 text-left overflow-hidden"}>
                         <p className={"font-semiheavy text-sm line-clamp-1 text-ellipsis"}>{notifConfirm?.title}</p>
                         <p className={"text-xs line-clamp-2 text-ellipsis"}>{notifConfirm?.body}</p>
@@ -261,8 +261,8 @@ export default function ManagePerformers() {
                         onClick={() => updateFirebase(jwt => setCurrentPerformer(jwt, stage, Math.min(data[stage].performers.length-1, data[stage].currentPerformer+1)))}>Next Performer</button>
                     <button className={`px-4 py-2 rounded-lg ${color.border} ${color.text}`}
                             onClick={() => updateFirebase(jwt => setCurrentPerformer(jwt, stage, Math.max(0, data[stage].currentPerformer-1)))}>Previous</button>
-                    <button className={`px-4 py-2 rounded-lg ${color.border} ${color.text}`}
-                            onClick={() => {}}>Change</button>
+                    <button className={`px-6 py-2 rounded-lg ${color.border} ${color.text}`}
+                            onClick={() => updateFirebase(jwt => setCurrentPerformer(jwt, stage, 0))}>Reset</button>
                 </div>
             </div>
 
@@ -278,7 +278,7 @@ export default function ManagePerformers() {
 
                        setEditingPerformer(-1);
                    }}>
-                <div className={"mx-5 mt-3 flex flex-col"}>
+                <div className={"mx-5 mt-1.5 flex flex-col"}>
                     <p className={"text-sm text-left"}>Name</p>
                     <input alt="name" className={"border text-xs border-gray-200 rounded-md py-2 px-3"} />
                 </div>
@@ -286,18 +286,28 @@ export default function ManagePerformers() {
                     <p className={"text-sm text-left"}>Artists</p>
                     <input alt="artists" placeholder={"Comma, Separated, Names"} className={"border text-xs border-gray-200 rounded-md py-2 px-3"} />
                 </div>
-                <div className={"mx-5 mt-2 text-left"}>
-                    <button className={"rounded-md bg-red-400 text-red-100 font-semiheavy px-1.5 py-1 text-xs"}
-                        onClick={() => {
-                            updateFirebase(jwt => removePerformer(jwt, stage, data[stage].performers, editingPerformer));
-                        }}>
-                        <FiTrash className={"inline"} />&nbsp;Delete</button>
+                <div className={"mx-5 mt-3.5 mb-6 text-left flex"}>
+                    <button className={"rounded-md bg-blue-400 text-blue-100 font-semiheavy px-1.5 py-1 text-xs"}
+                            onClick={() => {
+                                updateFirebase(jwt => setCurrentPerformer(jwt, stage, editingPerformer));
+                                setEditingPerformer(-1);
+                            }}>
+                        <FiEdit className={"inline -translate-y-0.5"}/>&nbsp;Set Performing
+                    </button>
+                    <button className={"ml-2 rounded-md bg-red-400 text-red-100 font-semiheavy px-1.5 py-1 text-xs"}
+                            onClick={() => {
+                                updateFirebase(jwt => removePerformer(jwt, stage, data[stage].performers, editingPerformer));
+                                setEditingPerformer(-1);
+                            }}>
+                        <FiTrash className={"inline -translate-y-0.5"}/>&nbsp;Delete
+                    </button>
                 </div>
             </Popup>
 
-            <div ref={performersContainer} className={"flex-grow select-none overflow-y-scroll"+(dragging == -1 ? "" : " touch-none")}>
-                {([] as any[]).concat(...data[stage].performers.map((p,i) => [
-                    <div key={"performer"+p.name} >
+            <div ref={performersContainer}
+                 className={"flex-grow select-none overflow-y-scroll" + (dragging == -1 ? "" : " touch-none")}>
+                {([] as any[]).concat(...data[stage].performers.map((p, i) => [
+                    <div key={"performer" + p.uid}>
                         {i == dragging && <div><p>&nbsp;</p><p className={"text-xs py-2"}>&nbsp;</p></div>}
                         <div className={"row px-6 py-2 flex"+(i == dragging ? " fixed rounded-s shadow-2xl w-full bg-white" : "")}>
                             <div className={"flex flex-col text-left flex-grow overflow-hidden whitespace-nowrap"}>

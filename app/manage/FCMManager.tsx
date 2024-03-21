@@ -22,6 +22,10 @@ async function isInvalid(jwt: string) {
     return false;
 }
 
+export async function isValidJwt(jwt: string) {
+    return await getAuth(firebase).verifyIdToken(jwt, false);
+}
+
 export async function setCurrentPerformer(jwt: string, stage: string, performer: number) {
     if (await isInvalid(jwt)) return;
     const database = getDatabase(firebase);

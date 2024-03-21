@@ -5,6 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
         name: 'LASA Coffeehouse',
         short_name: 'Coffeehouse',
         description: 'Coffeehouse performer tracker',
+        orientation: 'portrait',
         start_url: '/',
         id: '/',
         display: 'standalone',
