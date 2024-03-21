@@ -332,7 +332,7 @@ export default function ManagePerformers() {
                     <div key={"spacer"+i} className={"w-full h-px bg-gray-200"} />
                 ])).slice(0, -1)}
             </div>
-            <StageSelector stages={Object.keys(data)} selected={selectedStage} setSelected={setStage} className={"h-[4.3rem]"} />
+            <StageSelector stages={Object.keys(data)} selected={selectedStage} setSelected={setStage} className={"h-[4.5rem]"} />
         </div>
     )
 }
