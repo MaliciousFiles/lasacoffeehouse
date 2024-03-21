@@ -30,7 +30,7 @@ body {
   font-weight: 200;
 
   --navy: rgb(12, 35, 64);
-  --white: rgb(255, 255, 255);
+  --light-navy: rgb(8, 53, 115);
   --light-gray: rgb(200, 201, 199);
   --dark-gray: rgb(151, 153, 155);
 }

@@ -108,65 +108,92 @@ export default function ViewPerformers() {
     }, [image, backgroundRef]);
 
     return (
-        <div ref={backgroundRef} className={`bg-[--navy] bg-[center_top] bg-[length:auto_47%] flex flex-col h-full`} >
-            <div className={"h-[45%] text-[--light-gray] flex"}>
-                <div className={"flex flex-col justify-evenly h-4/5 m-auto"}>
-                    <p className={"text-sm font-semiheavy"}>Currently Performing</p>
-                    <p className={"text-3xl m-1 font-heavy"}>{performers[currentPerformer]?.name}</p>
+        <div ref={backgroundRef} className={`bg-[--navy] bg-[center_top] bg-[length:auto_36%] flex flex-col h-full`} >
+            <div className={`h-[35%]`} />
+            <div className={"bg-white h-[65%] rounded-t-2xl flex flex-col overflow-hidden"}>
+                <div
+                    className={`flex flex-col ${color.performerText} justify-evenly w-full flex-shrink-0 h-20 py-3 bg-gradient-to-b ${color.performerBg} m-auto`}>
+                    {/*<p className={"text-sm font-semiheavy"}>Currently Performing</p>*/}
+                    <p className={"text-3xl leading-7 m-1 font-heavy"}>{performers[currentPerformer]?.name}</p>
                     <p className={"text-sm mx-auto w-4/5 font-semiheavy"}>{performers[currentPerformer]?.artists && `Performed by ${performers[currentPerformer]?.artists.join(',')}`}</p>
                 </div>
-            </div>
-            <div className={"bg-white h-[55%] rounded-t-xl flex flex-col overflow-hidden"}>
                 <div className={"bg-gray-50 h-16 flex text-left"}>
-                    {[-1, 1].map(c =>
-                        <div key={`cohort${c}`} onClick={()=>setCohort(c as -1|1)} className={`w-1/2 ${c == cohort ? 'text-gray-800' : 'text-gray-500'} relative overflow-hidden`+(c == cohort ? ` ${color.bgLight}` : "")}>
+                    {[-1, 1].map(c => {
+                        const p = performers[currentPerformer + c];
+
+                        return (<div key={`cohort${c}`} onClick={() => setCohort(c as -1 | 1)}
+                             className={`w-1/2 ${c == cohort ? 'text-gray-800' : 'text-gray-500'} relative overflow-hidden` + (c == cohort ? ` ${color.bgLight}` : "")}>
                             <p className={"text-xs mt-2 ml-4 mb-0"}>{c == -1 ? "Previous" : "Up Next"}</p>
-                            <p className={"ml-4 mt-1 mb-3 font-semiheavy"}>{performers[currentPerformer+c]?.name}</p>
-                            {c == cohort && <div className={`${color.bg} w-full absolute bottom-[-1px] rounded h-1`} />}
+                            <div className={"flex flex-row justify-between"}>
+                                <p className={"ml-4 mt-1 mb-3 font-semiheavy"}>{p?.name}</p>
+                                {c == 1 && p && <button onClick={() => {
+                                    const {uid} = p;
+
+                                    if (notifs[stage]?.includes(uid)) {
+                                        notifs[stage]?.splice(notifs[stage].indexOf(uid), 1);
+                                    } else {
+                                        notifs[stage]?.push(uid);
+                                    }
+
+                                    setNotifs({...notifs});
+                                }}
+                                        className={`-translate-y-1/4 mr-2 px-5 flex-shrink-0 my-auto ${notifs[stage]?.includes(p.uid) ? color.bg : color.border} ${notifs[stage]?.includes(p.uid) ? color.textLight : color.text} rounded-2xl basis-1/5 h-[1.65rem] text-sm`}>
+                                    {notifs[stage]?.includes(p.uid) ?
+                                        <BiBellOff className={"m-auto"}/> :
+                                        <BiBell className={"m-auto"}/>
+                                    }
+                                </button>}
+                            </div>
+                            {c == cohort && <div className={`${color.bg} w-full absolute bottom-[-1px] rounded h-1`}/>}
                         </div>
-                    )}
+                        )})}
                 </div>
                 <div ref={scrollView} className={"flex-grow overflow-auto"}>
-                    {performers[currentPerformer+cohort] ?
-                        <div className={"h-full"} >
-                            {(cohort == -1 ? performers.slice(0, currentPerformer-1).reverse() : performers.slice(currentPerformer+2))
-                            .map(p =>
-                                <div key={"performer"+p.name} className={"h-11 w-full flex justify-between"} >
-                                    <div className={"text-left flex overflow-hidden whitespace-nowrap my-auto flex-grow"}>
-                                        <p className={"pl-4"} >{p.name}</p>
-                                        {p.artists && <div className={"flex-grow my-auto overflow-hidden whitespace-nowrap text-ellipsis text-xs text-gray-500"}>
-                                            <p className={"inline"}>&nbsp;by</p>
-                                            {([] as any[]).concat(...p.artists.map((a, i) => [
-                                                <p key={"artist"+i} className={"inline font-semiheavy"}>&nbsp;{a}</p>,
-                                                <p key={"c"+i} className={"inline font-light"}>,</p>
-                                            ])).slice(0,-1)}
-                                        </div>}
+                    {performers[currentPerformer + cohort] ?
+                        <div className={"h-full"}>
+                            {(cohort == -1 ? performers.slice(0, currentPerformer - 1).reverse() : performers.slice(currentPerformer + 2))
+                                .map(p =>
+                                    <div key={"performer" + p.name} className={"h-11 w-full flex justify-between"}>
+                                        <div
+                                            className={"text-left flex overflow-hidden whitespace-nowrap my-auto flex-grow"}>
+                                            <p className={"pl-4"}>{p.name}</p>
+                                            {p.artists && <div
+                                                className={"flex-grow my-auto overflow-hidden whitespace-nowrap text-ellipsis text-xs text-gray-500"}>
+                                                <p className={"inline"}>&nbsp;by</p>
+                                                {([] as any[]).concat(...p.artists.map((a, i) => [
+                                                    <p key={"artist" + i}
+                                                       className={"inline font-semiheavy"}>&nbsp;{a}</p>,
+                                                    <p key={"c" + i} className={"inline font-light"}>,</p>
+                                                ])).slice(0, -1)}
+                                            </div>}
+                                        </div>
+                                        {cohort == 1 ? <button onClick={() => {
+                                            const {uid} = p;
+
+                                            if (notifs[stage]?.includes(uid)) {
+                                                notifs[stage]?.splice(notifs[stage].indexOf(uid), 1);
+                                            } else {
+                                                notifs[stage]?.push(uid);
+                                            }
+
+                                            setNotifs({...notifs});
+                                        }}
+                                                className={`mr-4 flex-shrink-0 my-auto ${notifs[stage]?.includes(p.uid) ? color.bg : color.border} ${notifs[stage]?.includes(p.uid) ? color.textLight : color.text} rounded-2xl basis-1/5 h-[1.65rem] text-sm`}>
+                                            {notifs[stage]?.includes(p.uid) ?
+                                                <BiBellOff className={"m-auto"}/> :
+                                                <BiBell className={"m-auto"}/>
+                                            }
+                                        </button> : <p className={"text-xs text-gray-4ad00 z-50 mr-4 my-auto"}>Already performed</p>}
                                     </div>
-                                    <button onClick={() => {
-                                        const {uid} = p;
-
-                                        if (notifs[stage]?.includes(uid)) {
-                                            notifs[stage]?.splice(notifs[stage].indexOf(uid), 1);
-                                        } else {
-                                            notifs[stage]?.push(uid);
-                                        }
-
-                                        setNotifs({...notifs});
-                                    }} className={`mr-4 flex-shrink-0 my-auto ${notifs[stage]?.includes(p.uid) ? color.bg : color.border} ${notifs[stage]?.includes(p.uid) ? color.textLight : color.text} rounded-2xl basis-1/5 h-[1.65rem] text-sm`}>
-                                        {notifs[stage]?.includes(p.uid) ?
-                                            <BiBellOff className={"m-auto"} /> :
-                                            <BiBell className={"m-auto"} />
-                                        }
-                                    </button>
-                                </div>
-                            )}
-                            <div className={"h-[calc(100%-2.75rem)]"} />
+                                )}
+                            <div className={"h-[calc(100%-2.75rem)]"}/>
                         </div> :
                         <p className={"mt-2"}>{cohort == -1 ? "Welcome to Coffeehouse!" : "All done!"}</p>
                     }
 
                     {/* width = width of button + mr of button - right of this*/}
-                    <div ref={gradientRef} className={"fixed pointer-events-none z-10 right-2.5 w-[calc(20%+1rem-0.625rem)] bottom-0 9 h-[calc(55%-4rem-0*2.25rem)] bg-gradient-to-b from-transparent to-[#ffffffcf]"} />
+                    <div ref={gradientRef}
+                         className={"fixed pointer-events-none z-10 right-2.5 w-[calc(20%+1rem-0.625rem)] bottom-0 9 h-[calc(55%-4rem-0*2.25rem)] bg-gradient-to-b from-transparent to-[#ffffffcf]"}/>
                 </div>
             </div>
             {/*<div className={"flex justify-evenly bg-white w-4/5 h-11 drop-shadow-lg z-40 rounded-3xl absolute bottom-3 left-1/2 -translate-x-1/2"}>*/}

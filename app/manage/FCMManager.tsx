@@ -36,9 +36,15 @@ export async function setCurrentPerformer(jwt: string, stage: string, performer:
 
 export async function updatePerformers(jwt: string, stage: string, performers: Performer[]) {
     if (await isInvalid(jwt)) return;
-    const database = getDatabase(firebase);
+    const ref = getDatabase(firebase).ref(`/data/${stage}/performers`);
 
-    await database.ref(`/data/${stage}/performers`).set(performers);
+    const current = (await ref.get()).val();
+
+    for (let i = 0; i < current.length; i++) {
+        current[i] = {...current[i], ...performers[i]};
+    }
+
+    await ref.set(current);
 }
 
 export async function updatePerformer(jwt: string, stage: string, performer: number, name: string, artists: string[]) {
@@ -49,12 +55,14 @@ export async function updatePerformer(jwt: string, stage: string, performer: num
     await database.ref(`/data/${stage}/performers/${performer}/artists`).set(artists);
 }
 
-export async function removePerformer(jwt: string, stage: string, performers: Performer[], performer: number) {
+export async function removePerformer(jwt: string, stage: string, performer: number) {
     if (await isInvalid(jwt)) return;
-    const database = getDatabase(firebase);
+    const ref = getDatabase(firebase).ref(`/data/${stage}/performers`);
 
+    const performers = (await ref.get()).val()
     performers.splice(performer, 1);
-    await database.ref(`/data/${stage}/performers`).set(performers);
+
+    await ref.set(performers);
 }
 
 async function getFCM() {

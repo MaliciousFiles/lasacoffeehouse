@@ -1,6 +1,6 @@
 "use client";
 
-import firebase, {genUID} from "@/app/util/firebase/init";
+import firebase, {genUID, Performer} from "@/app/util/firebase/init";
 import {getAuth} from "@firebase/auth";
 import React, {useContext, useEffect, useRef, useState} from "react";
 import SignInPage from "@/app/manage/SignInPage";
@@ -32,13 +32,15 @@ export default function ManagePerformers() {
 
     const [firebaseLoading, setFirebaseLoading] = useState(false);
 
+    const withoutImage = (p: Performer) => {return {...p, image: undefined}};
+
     useEffect(() => {
         // the user did something, therefore update clients with new data
         if (firebaseLoading) {
             let current = data[stage].currentPerformer;
             let performers = data[stage].performers;
 
-            updateFirebase(jwt => updateClients(jwt, stage, performers[current], performers[current+1]), false);
+            updateFirebase(jwt => updateClients(jwt, stage, withoutImage(performers[current]), withoutImage(performers[current+1])), false);
         } else {
             // since they didn't update it, visual scroll
             scroll(true);
@@ -80,8 +82,6 @@ export default function ManagePerformers() {
     const currentChips = useRef<(HTMLElement|null)[]>([]);
 
     const scrollBy = useRef(0);
-
-    // TODO: stage selector
 
     const movePerformer = (parent: HTMLElement, idx: number, direction: 1 | -1) => {
         let pos = performerPositions.current[idx]
@@ -177,7 +177,7 @@ export default function ManagePerformers() {
             const performers = performerPositions.current
                 .reduce((arr, performer, idx) => {arr[performer] = idx; return arr;}, [] as number[]) // invert
                 .map(i => data[stage].performers[i]);
-            updateFirebase(jwt => updatePerformers(jwt, stage, performers));
+            updateFirebase(jwt => updatePerformers(jwt, stage, performers.map(withoutImage)));
             setDragging(-1);
         }
 
@@ -297,7 +297,7 @@ export default function ManagePerformers() {
                     </button>
                     <button className={"ml-2 rounded-md bg-red-400 text-red-100 font-semiheavy px-1.5 py-1 text-xs"}
                             onClick={() => {
-                                updateFirebase(jwt => removePerformer(jwt, stage, data[stage].performers, editingPerformer));
+                                updateFirebase(jwt => removePerformer(jwt, stage, editingPerformer));
                                 setEditingPerformer(-1);
                             }}>
                         <FiTrash className={"inline -translate-y-0.5"}/>&nbsp;Delete
