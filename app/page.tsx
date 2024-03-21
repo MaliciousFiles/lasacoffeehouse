@@ -124,26 +124,7 @@ export default function ViewPerformers() {
                         return (<div key={`cohort${c}`} onClick={() => setCohort(c as -1 | 1)}
                              className={`w-1/2 ${c == cohort ? 'text-gray-800' : 'text-gray-500'} relative overflow-hidden` + (c == cohort ? ` ${color.bgLight}` : "")}>
                             <p className={"text-xs mt-2 ml-4 mb-0"}>{c == -1 ? "Previous" : "Up Next"}</p>
-                            <div className={"flex flex-row justify-between"}>
-                                <p className={"ml-4 mt-1 mb-3 font-semiheavy"}>{p?.name}</p>
-                                {c == 1 && p && <button onClick={() => {
-                                    const {uid} = p;
-
-                                    if (notifs[stage]?.includes(uid)) {
-                                        notifs[stage]?.splice(notifs[stage].indexOf(uid), 1);
-                                    } else {
-                                        notifs[stage]?.push(uid);
-                                    }
-
-                                    setNotifs({...notifs});
-                                }}
-                                        className={`-translate-y-1/4 mr-2 px-5 flex-shrink-0 my-auto ${notifs[stage]?.includes(p.uid) ? color.bg : color.border} ${notifs[stage]?.includes(p.uid) ? color.textLight : color.text} rounded-2xl basis-1/5 h-[1.65rem] text-sm`}>
-                                    {notifs[stage]?.includes(p.uid) ?
-                                        <BiBellOff className={"m-auto"}/> :
-                                        <BiBell className={"m-auto"}/>
-                                    }
-                                </button>}
-                            </div>
+                            <p className={"ml-4 mt-1 mb-3 font-semiheavy"}>{p?.name}</p>
                             {c == cohort && <div className={`${color.bg} w-full absolute bottom-[-1px] rounded h-1`}/>}
                         </div>
                         )})}
