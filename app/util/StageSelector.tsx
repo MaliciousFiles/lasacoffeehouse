@@ -9,7 +9,7 @@ export default function StageSelector(props: {stages: string[], selected: number
         <div
             className={`flex justify-evenly bg-gray-50 w-full ${className}`}>
             {stages.map((s, i) =>
-                <div key={"stage" + s} onClick={() => setSelected(i)}
+                <div key={"stage" + i + s} onClick={() => setSelected(i)}
                      className={`flex-grow flex ${i == selected ? "bg-gray-200" : ""}`}>
                     <div className={"my-auto w-1/3"}>
                         {i == 0 ?
@@ -18,7 +18,7 @@ export default function StageSelector(props: {stages: string[], selected: number
                                 className={`mx-auto ${i == selected ? "text-emerald-500" : "text-emerald-200"}`}/>
                         }
                     </div>
-                    <p className={`my-auto flex-grow text-xs text-left font-heavy text-gray-${i == selected ? "700" : "400"}`}>{s}</p>
+                    <p className={`my-auto flex-grow text-xs text-left font-heavy ${i == selected ? "text-gray-700" : "text-gray-300"}`}>{s}</p>
                 </div>
             )}
         </div>

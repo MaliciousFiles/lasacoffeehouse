@@ -159,7 +159,6 @@ export default function ViewPerformers() {
                     <div ref={gradientRef} className={"fixed pointer-events-none z-10 right-2.5 w-[calc(20%+1rem-0.625rem)] bottom-0 9 h-[calc(55%-4rem-0*2.25rem)] bg-gradient-to-b from-transparent to-[#ffffffcf]"} />
                 </div>
             </div>
-            {/* TODO: make whole page wide */}
             {/*<div className={"flex justify-evenly bg-white w-4/5 h-11 drop-shadow-lg z-40 rounded-3xl absolute bottom-3 left-1/2 -translate-x-1/2"}>*/}
             {/*    {Object.keys(data).map((s, i) =>*/}
             {/*        <div key={"stage"+s} onClick={()=>setStage(i)} className={`m-1.5 flex-grow flex ${s == stage ? "bg-gray-100" : "bg-gray-50"} rounded-3xl`} >*/}
@@ -173,7 +172,7 @@ export default function ViewPerformers() {
             {/*        </div>*/}
             {/*    )}*/}
             {/*</div>*/}
-            <StageSelector stages={Object.keys(data)} selected={selectedStage} setSelected={setStage} className={"h-11"} />
+            <StageSelector stages={Object.keys(data)} selected={selectedStage} setSelected={setStage} className={"h-11 z-50"} />
 
             <Popup title={setupStage as string} open={!!setupStage} colorScheme={color} >
                 {
