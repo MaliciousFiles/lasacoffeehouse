@@ -109,7 +109,7 @@ export default function ViewPerformers() {
     }, [image, backgroundRef]);
 
     return (
-        <div ref={backgroundRef} className={`bg-[--navy] bg-[center_top] bg-[length:auto_36%] flex flex-col h-full`} >
+        <div ref={backgroundRef} className={`bg-[--navy] bg-no-repeat bg-[center_top] bg-[length:auto_36%] flex flex-col h-full`} >
             <div className={`h-[35%]`} />
             <div className={"bg-white h-[65%] rounded-t-2xl flex flex-col overflow-hidden"}>
                 <div
