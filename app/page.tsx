@@ -165,8 +165,8 @@ export default function ViewPerformers() {
                                         }}
                                                 className={`mr-4 flex-shrink-0 my-auto ${notifs[stage]?.includes(p.uid) ? color.bg : color.border} ${notifs[stage]?.includes(p.uid) ? color.textLight : color.text} rounded-2xl basis-1/5 h-[1.65rem] text-sm`}>
                                             {notifs[stage]?.includes(p.uid) ?
-                                                <BiBellOff className={"m-auto"}/> :
-                                                <BiBell className={"m-auto"}/>
+                                                <BiBell className={"m-auto"}/> :
+                                                <BiBellOff className={"m-auto"}/>
                                             }
                                         </button> : <p className={"text-xs text-gray-4ad00 z-50 mr-4 my-auto"}>Already performed</p>}
                                     </div>

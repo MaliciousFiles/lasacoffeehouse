@@ -16,7 +16,7 @@ export default function SignInPage(props: {logIn: ()=>void}) {
 
     const tryLogIn = async (evt: React.MouseEvent<HTMLButtonElement>) => {
         try {
-            const creds = await signInWithEmailAndPassword(getAuth(firebase),
+            await signInWithEmailAndPassword(getAuth(firebase),
                 `${usernameRef.current!.value}@username.com`,
                 passwordRef.current!.value);
 

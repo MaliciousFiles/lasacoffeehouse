@@ -9,7 +9,8 @@ import SizeCheck from "@/app/util/SizeCheck";
 
 export const metadata: Metadata = {
     title: 'LASA Coffeehouse',
-    description: 'Performer viewer for the Coffeehouse event',
+    description: 'Performer viewer for Coffeehouse',
+    manifest: '/manifest.webmanifest',
 }
 
 const inter = Inter({ subsets: ['latin'] })
@@ -19,19 +20,22 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+
     return (
         <html lang="en" className={"w-full h-full"}>
-            <SizeCheck>
-                <BaseFirebaseComponent initialData={await (async () => {
-                    const data = (await get(ref(getDatabase(firebase), "/data"))).val()
-                    return Object.keys(data).reduce((obj, stage) => {
-                        if (!('performers' in obj[stage])) obj[stage]['performers'] = [];
-                        return obj;
-                    }, data);
-                })()}>
-                    <body className={"w-full h-full " + inter.className}>{children}</body>
-                </BaseFirebaseComponent>
-            </SizeCheck>
+            <body className={"w-full h-full " + inter.className}>
+                <SizeCheck>
+                    <BaseFirebaseComponent initialData={await (async () => {
+                        const data = (await get(ref(getDatabase(firebase), "/data"))).val()
+                        return Object.keys(data).reduce((obj, stage) => {
+                            if (!('performers' in obj[stage])) obj[stage]['performers'] = [];
+                            return obj;
+                        }, data);
+                    })()}>
+                        {children}
+                    </BaseFirebaseComponent>
+                </SizeCheck>
+            </body>
         </html>
     )
 }
