@@ -1,15 +1,18 @@
 import {NextRequest, NextResponse} from "next/server";
 
 export async function GET(req: NextRequest) {
-    const url = new URL(req.headers.get('referer')!);
+    let path = '/';
+    try {
+        path = new URL(req.headers.get('referer')!).pathname;
+    } catch {}
 
     return NextResponse.json({
         name: 'LASA Coffeehouse',
         short_name: 'Coffeehouse',
         description: 'Coffeehouse performer tracker',
         orientation: 'portrait',
-        start_url: url.pathname,
-        id: url.pathname,
+        start_url: path,
+        id: path,
         display: 'standalone',
         background_color: '#fff',
         theme_color: '#fff',
