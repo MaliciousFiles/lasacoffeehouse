@@ -20,7 +20,7 @@ export default function Onboarding(props: {flow: Flow, children: ReactNode | Rea
         setIOS(/iPad|iPhone|iPod/.test(navigator.platform));
     }, []);
 
-    const [notif, setNotif] = useState(props.flow == Flow.MANAGE ? 'granted' : Notification.permission);
+    const [notif, setNotif] = useState(typeof(Notification) === 'undefined' ? 'denied' :  props.flow == Flow.MANAGE ? 'granted' : Notification.permission);
 
     const auth = getAuth(firebase);
     const [loggedIn, setLoggedIn] = useState(props.flow == Flow.NORMAL || auth.currentUser !== null);
