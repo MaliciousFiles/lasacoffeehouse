@@ -6,6 +6,7 @@ import {getDatabase, ref, get} from "@firebase/database";
 import BaseFirebaseComponent from "@/app/util/firebase/BaseFirebaseComponent";
 import React from "react";
 import SizeCheck from "@/app/util/SizeCheck";
+import Onboarding from "@/app/onboarding/Onboarding";
 
 export const metadata: Metadata = {
     title: 'LASA Coffeehouse',

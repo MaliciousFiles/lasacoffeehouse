@@ -1,10 +1,3 @@
-export enum SetupStage {
-    NONE="",
-    DOWNLOAD_PWA="Add to Home Screen",
-    NOTIFS_DENIED="Notifications Denied",
-    ENABLE_NOTIFS="Enable Notifications"
-}
-
 export function parseArtists(string: string) {
     return string.split(/, */).map((artist) => artist.trim()).filter(s => s != "");
 }
