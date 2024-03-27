@@ -21,7 +21,7 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-
+    console.log("layout");
     return (
         <html lang="en" className={"w-full h-full"}>
             <body className={"w-full h-full " + inter.className}>
