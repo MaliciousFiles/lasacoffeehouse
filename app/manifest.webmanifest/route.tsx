@@ -1,7 +1,7 @@
 import {NextResponse} from "next/server";
 import {headers} from "next/headers";
 
-export async function GET(request: Request) {
+export async function GET() {
     let path = '/';
     try {
         path = new URL(headers().get('referer')!).pathname;
@@ -44,6 +44,5 @@ export async function GET(request: Request) {
                 type: 'image/svg+xml'
             },
         ],
-        test: Array.from(headers().entries()),
     })
 }
