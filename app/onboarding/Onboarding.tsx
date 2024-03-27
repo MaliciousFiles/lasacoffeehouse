@@ -22,9 +22,6 @@ export default function Onboarding(props: {flow: Flow, children: ReactNode | Rea
 
     const [notif, setNotif] = useState(typeof(Notification) === 'undefined' ? 'default' :  props.flow != Flow.MAIN ? 'granted' : Notification.permission);
     useEffect(() => {
-        alert("notif set to "+notif);
-    }, [notif]);
-    useEffect(() => {
         navigator.permissions.query({name:'notifications'}).then(function(perm) {
             perm.onchange = () => {
                 setNotif(Notification.permission);
