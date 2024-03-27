@@ -47,8 +47,10 @@ export default function Onboarding(props: {flow: Flow, children: ReactNode | Rea
                 <Image className="drop-shadow-lg mx-auto mt-4" src="/images/add_pwa.jpeg"
                        width={150}
                        height={0} alt="Add to home screen"/>
-                <p className="mx-4 mt-6">To enable notifications, install this website as a Progressive Web
-                    App.</p>
+                <p className="mx-4 mt-6">
+                    {props.flow === Flow.MAIN && "To enable notifications, install this website as a Progressive Web App."}
+                    {props.flow === Flow.MANAGE && "For the proper viewing experience, install this website as a Progressive Web App."}
+                </p>
                 <p className={"mx-4 mt-3"}>Tap Share, and then &quot;Add to Home Screen&quot; (Safari pictured
                     above).</p>
             </div>
