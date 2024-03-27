@@ -1,12 +1,10 @@
 import {NextResponse} from "next/server";
 import {headers} from "next/headers";
 
-// apparently it has to take in the req as a Request for Next to not cache it ;-;
 export async function GET(req: Request) {
-    let path = '/';
-    try {
-        path = new URL(headers().get('referer')!).pathname;
-    } catch {}
+    const referer = headers().get('referer');
+
+    let path = referer ? new URL(referer).pathname : '/';
 
     return NextResponse.json({
         name: 'LASA Coffeehouse',
