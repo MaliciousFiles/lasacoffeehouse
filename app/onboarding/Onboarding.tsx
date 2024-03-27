@@ -7,61 +7,77 @@ import firebase from "@/app/util/firebase/init";
 import SignIn from "@/app/onboarding/SignIn";
 
 export enum Flow {
-    NORMAL,
+    MAIN,
     MANAGE
 }
 
 export default function Onboarding(props: {flow: Flow, children: ReactNode | ReactNode[]}) {
-    const [pwa, setPWA] = useState(true);
-    const [iOS, setIOS] = useState(false);
+    const [pwa, setPWA] = useState(false);
+    const [iOS, setIOS] = useState(true);
 
     useEffect(() => {
         setPWA(window.matchMedia('(display-mode: standalone)').matches);
         setIOS(/iPad|iPhone|iPod/.test(navigator.platform));
     }, []);
 
-    const [notif, setNotif] = useState(typeof(Notification) === 'undefined' ? 'denied' :  props.flow == Flow.MANAGE ? 'granted' : Notification.permission);
+    const [notif, setNotif] = useState(typeof(Notification) === 'undefined' ? 'default' :  props.flow != Flow.MAIN ? 'granted' : Notification.permission);
+    useEffect(() => {
+        alert("notif set to "+notif);
+    }, [notif]);
+    useEffect(() => {
+        navigator.permissions.query({name:'notifications'}).then(function(perm) {
+            perm.onchange = () => {
+                setNotif(Notification.permission);
+            };
+        });
+    }, []);
 
     const auth = getAuth(firebase);
-    const [loggedIn, setLoggedIn] = useState(props.flow == Flow.NORMAL || auth.currentUser !== null);
-    auth.onAuthStateChanged((user) => {
-        setLoggedIn(user !== null);
-    });
+    const [loggedIn, setLoggedIn] = useState(props.flow != Flow.MANAGE || auth.currentUser !== null);
+    if (props.flow == Flow.MANAGE) {
+        auth.onAuthStateChanged((user) => {
+            setLoggedIn(user !== null);
+        });
+    }
 
     let inner = undefined;
     if (iOS && !pwa) {
         inner = (
-            <div className={"my-4"}>
+            <div className={"mb-5 mt-1.5"}>
                 <p className={"text-xl mb-4"}>Add to Home Screen</p>
-                <Image key="image1" className="drop-shadow-lg mx-auto" width={200} height={0}
+                <Image className="drop-shadow-lg mx-auto" width={200} height={0}
                        src="/images/share_button.jpeg" alt="Share button"/>
-                <Image key="image2" className="drop-shadow-lg mx-auto mt-4" src="/images/add_pwa.jpeg"
+                <Image className="drop-shadow-lg mx-auto mt-4" src="/images/add_pwa.jpeg"
                        width={150}
                        height={0} alt="Add to home screen"/>
-                <p key="p" className="mx-4 mt-6">To enable notifications, install this website as a Progressive Web
+                <p className="mx-4 mt-6">To enable notifications, install this website as a Progressive Web
                     App.</p>
-                <p key="p2" className={"mx-4 mt-3"}>Tap Share, and then &quot;Add to Home Screen&quot; (Safari pictured
+                <p className={"mx-4 mt-3"}>Tap Share, and then &quot;Add to Home Screen&quot; (Safari pictured
                     above).</p>
             </div>
         );
     } else if (notif !== 'granted') {
         inner = (
-            <div className={"my-4"}>
-                <p className={"text-xl mb-4"}>Enable Notifications</p>
-                {/*<Image key="image" className="drop-shadow-lg mx-auto -my-4" width={105} height={0}*/}
+            <div className={"mb-6 mt-1.5"}>
+                <p className={"text-xl mb-6"}>Stay Up to Date</p>
+                {/*<Image className="drop-shadow-lg mx-auto -my-4" width={105} height={0}*/}
                 {/*       src="/images/notifs.png" alt="Notifications"/>,*/}
-                <p key="p" className="mx-4 mt-5">
-                    {notif === 'denied' ?
-                        "Notification permissions have been explicitly denied. Enable them in Settings to continue." :
-                        "To be notified of upcoming performances, tap &quot;Enable Notifications&quot; and grant permission."
+                <button
+                    className="inline-block text-white bg-blue-600 w-fit mx-auto px-4 py-2 rounded-xl"
+                    onClick={() => {
+                        Notification.requestPermission().then(setNotif);
+                    }}>
+                    {notif === 'denied'
+                        ? 'Continue to App'
+                        : 'Enable Notifications'
+                    }
+                </button>
+                <p className="mx-4 mt-6">
+                    {notif === 'denied'
+                        ? 'Notification permissions have been explicitly denied. Enable them in Settings to continue.'
+                        : 'To be notified of upcoming performances, tap "Enable Notifications" and grant permission.'
                     }
                 </p>
-                <button key="button"
-                        className="inline-block text-white bg-blue-600 w-fit mx-auto px-4 py-2 rounded-xl mt-8"
-                        onClick={() => {
-                            Notification.requestPermission().then(setNotif);
-                        }}>Enable Notifications
-                </button>
             </div>
         );
     } else if (!loggedIn) {
