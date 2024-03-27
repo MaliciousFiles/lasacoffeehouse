@@ -74,7 +74,7 @@ export default function Onboarding(props: {flow: Flow, children: ReactNode | Rea
                 <p className="mx-4 mt-6">
                     {notif === 'denied'
                         ? 'Notification permissions have been explicitly denied. Enable them in Settings to continue.'
-                        : 'To be notified of upcoming performances, tap "Enable Notifications" and grant permission.'
+                        : 'To be notified of upcoming performances, grant notification permissions.'
                     }
                 </p>
             </div>
