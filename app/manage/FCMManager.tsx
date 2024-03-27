@@ -1,7 +1,7 @@
 "use server";
 
-import {initializeApp, getApps, cert} from 'firebase-admin/app';
-import { getMessaging } from 'firebase-admin/messaging';
+import {cert, getApps, initializeApp} from 'firebase-admin/app';
+import {getMessaging} from 'firebase-admin/messaging';
 import {getDatabase} from "firebase-admin/database";
 import {getAuth} from "firebase-admin/auth";
 import {AES, enc} from "crypto-js";

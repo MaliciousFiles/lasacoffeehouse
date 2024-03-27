@@ -2,7 +2,7 @@
 
 import React, {ReactNode, useEffect, useState} from "react";
 import firebase, {Stage} from "@/app/util/firebase/init";
-import {getDatabase, onValue, ref} from "@firebase/database";
+import {get, getDatabase, onValue, ref} from "@firebase/database";
 import FirebaseContext from "@/app/util/firebase/FirebaseContext";
 
 export default function BaseFirebaseComponent(props: {initialData: {[index: string]: Stage}, children: ReactNode}) {
@@ -11,11 +11,19 @@ export default function BaseFirebaseComponent(props: {initialData: {[index: stri
     useEffect(() => {
         const dataRef = ref(getDatabase(firebase), "/data");
 
-        return onValue(dataRef, (snapshot) => {
-            setData(Object.keys(snapshot.val()).reduce((obj, stage) => {
+        const updateData = (val: any) => {
+            setData(Object.keys(val).reduce((obj, stage) => {
                 if (!('performers' in obj[stage])) obj[stage]['performers'] = [];
                 return obj;
-            }, snapshot.val()));
+            }, val));
+        }
+
+        document.onvisibilitychange = () => {
+            if (document.visibilityState == 'visible') updateData(get(dataRef));
+        }
+
+        return onValue(dataRef, (snapshot) => {
+            updateData(snapshot.val());
         });
     }, [])
 

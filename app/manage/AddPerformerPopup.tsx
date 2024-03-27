@@ -1,7 +1,4 @@
 import React, {useEffect, useRef, useState} from "react";
-import dynamic from "next/dynamic";
-import Link from "next/link";
-import Image from "next/image";
 import {parseArtists} from "@/app/util/util";
 
 export default function AddPerformerPopup(props: {addingPerformer: number, cancel: ()=>void, add: (name: string, artists: string[])=>void}) {

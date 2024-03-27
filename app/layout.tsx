@@ -1,12 +1,11 @@
 import './globals.css'
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import type {Metadata} from 'next'
+import {Inter} from 'next/font/google'
 import firebase from '@/app/util/firebase/init'
-import {getDatabase, ref, get} from "@firebase/database";
+import {get, getDatabase, ref} from "@firebase/database";
 import BaseFirebaseComponent from "@/app/util/firebase/BaseFirebaseComponent";
 import React from "react";
 import SizeCheck from "@/app/util/SizeCheck";
-import Onboarding from "@/app/onboarding/Onboarding";
 
 export const metadata: Metadata = {
     title: 'LASA Coffeehouse',

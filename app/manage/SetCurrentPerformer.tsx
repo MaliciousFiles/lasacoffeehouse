@@ -1,6 +1,5 @@
 import {FaEllipsisVertical} from "react-icons/fa6";
 import React, {useEffect, useRef, useState} from "react";
-import Dropdown from "@/app/util/Dropdown";
 import scrollIntoView from "scroll-into-view-if-needed";
 import {Performer} from "@/app/util/firebase/init";
 

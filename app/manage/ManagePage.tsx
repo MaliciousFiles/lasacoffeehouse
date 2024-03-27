@@ -1,30 +1,24 @@
 "use client";
 
-import firebase, {genUID, Performer} from "@/app/util/firebase/init";
+import firebase, {Performer} from "@/app/util/firebase/init";
 import {getAuth} from "@firebase/auth";
 import React, {useContext, useEffect, useRef, useState} from "react";
 import FirebaseContext from "@/app/util/firebase/FirebaseContext";
-import Dropdown from "@/app/util/Dropdown";
 import {RiDraggable} from "react-icons/ri";
-import {FiCheck, FiEdit, FiEdit2, FiPlus, FiTrash, FiTrash2, FiX} from "react-icons/fi";
+import {FiEdit, FiTrash} from "react-icons/fi";
 import {
     getNumFCM,
     removePerformer,
-    updatePerformer, sendNotification,
+    sendNotification,
     setCurrentPerformer,
     updateClients,
-    updatePerformers, isValidJwt
+    updatePerformer,
+    updatePerformers
 } from "@/app/manage/FCMManager";
-import AddPerformerPopup from "@/app/manage/AddPerformerPopup";
-import SetCurrentPerformer from "@/app/manage/SetCurrentPerformer";
 import scrollIntoView from "scroll-into-view-if-needed";
-import Loading from "@/app/util/Loading";
 import Popup, {InputList} from "@/app/util/Popup";
 import {getColorScheme, parseArtists} from "@/app/util/util";
-import Image from "next/image";
-import {cookies} from "next/headers";
 import StageSelector from "@/app/util/StageSelector";
-import Onboarding, {Flow} from "@/app/onboarding/Onboarding";
 
 export default function ManagePage() {
     const data = useContext(FirebaseContext);

@@ -5,14 +5,9 @@ import {getDatabase, ref, set} from "@firebase/database";
 import firebase from "@/app/util/firebase/init";
 import {getMessaging, getToken, onMessage} from "@firebase/messaging";
 import FirebaseContext from "@/app/util/firebase/FirebaseContext";
-import {BiBell, BiBellOff, BiSolidSquareRounded} from "react-icons/bi";
-import {TbTriangleFilled} from "react-icons/tb";
-import Popup from "@/app/util/Popup";
-import Image from "next/image";
-import Link from "next/link";
+import {BiBell, BiBellOff} from "react-icons/bi";
 import {getColorScheme} from "@/app/util/util";
 import StageSelector from "@/app/util/StageSelector";
-import Onboarding, {Flow} from "@/app/onboarding/Onboarding";
 
 export default function MainPage() {
     const data = useContext(FirebaseContext);
@@ -37,6 +32,10 @@ export default function MainPage() {
                     setFbToken(token);
                 }
             })
+
+        document.addEventListener('visibilitychange', () => {
+            fbToken && set(ref(database, `/fcm/${fbToken}/last_used`), Date.now()).then();
+        })
 
         // just let the SW handle it
         onMessage(messaging, (payload) => {
