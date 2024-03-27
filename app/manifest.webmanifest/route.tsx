@@ -1,9 +1,10 @@
-import {NextRequest, NextResponse} from "next/server";
+import {NextResponse} from "next/server";
+import {headers} from "next/headers";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
     let path = '/';
     try {
-        path = new URL(req.headers.get('referer')!).pathname;
+        path = new URL(headers().get('referer')!).pathname;
     } catch {}
 
     return NextResponse.json({
