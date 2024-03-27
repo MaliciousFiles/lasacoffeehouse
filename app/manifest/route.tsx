@@ -4,7 +4,6 @@ export async function GET(req: NextRequest) {
     let path = '/';
     try {
         path = new URL(req.headers.get('referer')!).pathname;
-        console.log("returning", path, " for ", req.headers.get('referer'));
     } catch {}
 
     return NextResponse.json({

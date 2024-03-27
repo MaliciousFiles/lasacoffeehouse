@@ -11,7 +11,7 @@ import Onboarding from "@/app/onboarding/Onboarding";
 export const metadata: Metadata = {
     title: 'LASA Coffeehouse',
     description: 'Performer viewer for Coffeehouse',
-    manifest: '/manifest.webmanifest',
+    manifest: '/manifest',
 }
 
 const inter = Inter({ subsets: ['latin'] })
@@ -21,9 +21,11 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-    console.log("layout");
     return (
         <html lang="en" className={"w-full h-full"}>
+            {/*<head>*/}
+            {/*    <link rel='manifest' href='/manifest' />*/}
+            {/*</head>*/}
             <body className={"w-full h-full " + inter.className}>
                 <SizeCheck>
                     <BaseFirebaseComponent initialData={await (async () => {
