@@ -243,9 +243,9 @@ export default function ManagePage() {
             <div className={`${color.bgLight} flex flex-col flex-shrink-0`}>
                 <button className={`rounded-2xl text-xs mr-4 mt-2 px-2.5 py-1 ml-auto ${color.bgDark} ${color.textLight}`}
                         onClick={() => setNotifPopup(true)}>Send Notification</button>
-                <div className={"ml-5 w-3/5"}>
+                <div className={"mx-5"}>
                     <p className={"text-xs mt-2 text-left font-semiheavy text-gray-400"}>Currently Performing</p>
-                    <p className={"text-2xl mt-1 text-gray-800 font-semiheavy text-left"}>{currentPerformer.name}</p>
+                    <p className={"text-2xl mt-1 text-gray-800 line-clamp-1 font-semiheavy text-left"}>{currentPerformer.name}</p>
                     <p className={"text-xs mt-3 text-gray-400 font-semiheavy line-clamp-2 text-ellipsis text-left"}>{currentPerformer.artists ? `Performed by ${currentPerformer.artists.join(", ")}` : ' '}</p>
                 </div>
                 <div className={"mx-3 mt-6 mb-4 flex text-xs justify-evenly"}>
@@ -302,11 +302,11 @@ export default function ManagePage() {
                     <div key={"performer" + p.uid}>
                         {i == dragging && <div><p>&nbsp;</p><p className={"text-xs py-2"}>&nbsp;</p></div>}
                         <div className={"row px-6 py-2 flex"+(i == dragging ? " fixed rounded-s shadow-2xl w-full bg-white" : "")}>
-                            <div className={"flex flex-col text-left flex-grow overflow-hidden whitespace-nowrap"}>
-                                <p className={"text-gray-800 font-semiheavy"}>{p.name}</p>
+                            <div className={`flex flex-col text-left flex-grow overflow-hidden whitespace-nowrap pr-1`}>
+                                <p className={"text-gray-800 font-semiheavy text-ellipsis overflow-hidden"}>{p.name}</p>
                                 <p className={"text-gray-600 text-xs text-ellipsis overflow-hidden"}>{p.artists ? p.artists.join(',') : " "}</p>
                             </div>
-                            <p ref={el => currentChips.current[i] = el} className={`${color.bg} ${color.textLight} my-auto text-xs px-2 h-fit py-0.5 mr-1.5 rounded-sm font-semiheavy ${i != data[stage].currentPerformer && 'invisible'}`}>Current</p>
+                            <p ref={el => currentChips.current[i] = el} className={`${color.bg} ${color.textLight} my-auto text-xs h-fit rounded-sm font-semiheavy ${i != data[stage].currentPerformer ? 'w-0' : 'px-2 py-0.5 mr-1.5'}`}>Current</p>
                             <button className={"bg-gray-100 text-gray-700 h-fit my-auto py-0.5 px-2 rounded-sm mr-1.5 font-semiheavy text-xs"}
                                     onClick={() => setEditingPerformer(i)}>Edit</button>
                             <div className={"text-gray-400 py-0.5 touch-none rounded-xs text-sm flex-shrink-0 bg-gray-200 my-auto"}
