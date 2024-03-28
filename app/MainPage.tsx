@@ -152,8 +152,8 @@ export default function MainPage() {
                             {(cohort == -1 ? performers.slice(0, currentPerformer - 1).reverse() : performers.slice(currentPerformer + 2))
                                 .map((p, i) =>
                                     <div key={"performer" + p.name} className={"h-10 w-full flex justify-between"}>
-                                        <div ref={r => performerContainers.current[i] = r!}
-                                            className={"pl-4 h-full text-left flex-wrap flex overflow-hidden whitespace-nowrap my-auto flex-grow"}>
+                                        <div ref={r => performerContainers.current = [...performerContainers.current, r!]}
+                                            className={"pl-4 pr-1 h-full text-left flex-wrap flex overflow-hidden whitespace-nowrap my-auto flex-grow"}>
                                             <p className={"h-5 leading-5 text-center overflow-hidden my-auto text-ellipsis"}>{p.name}</p>
 
                                             {p.artists && <p className={"my-auto h-5 leading-5 text-center overflow-hidden inline whitespace-nowrap text-ellipsis text-xs text-gray-500"}>by</p>}
