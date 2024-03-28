@@ -99,9 +99,9 @@ export default function MainPage() {
             <div className={`h-[35%]`} />
             <div className={"bg-white z-10 h-[65%] rounded-t-2xl flex flex-col overflow-hidden"}>
                 <div
-                    className={`flex flex-col ${color.performerText} justify-evenly w-full flex-shrink-0 h-20 py-3 bg-gradient-to-b ${color.performerBg} m-auto`}>
-                    <p className={"text-3xl leading-7 m-1 font-heavy"}>{performers[currentPerformer]?.name}</p>
-                    <p className={"text-sm mx-auto w-4/5 font-semiheavy"}>{performers[currentPerformer]?.artists && `Performed by ${performers[currentPerformer]?.artists.join(',')}`}</p>
+                    className={`flex flex-col ${color.performerText} px-4 justify-evenly w-full flex-shrink-0 h-20 pt-3 bg-gradient-to-b ${color.performerBg} m-auto`}>
+                    <p className={"text-3xl text-ellipsis line-clamp-1 leading-7 m-1 font-heavy"}>{performers[currentPerformer]?.name}</p>
+                    <p className={"text-sm text-ellipsis line-clamp-2 font-semiheavy"}>{performers[currentPerformer]?.artists && `Performed by ${performers[currentPerformer]?.artists.join(',')}`}</p>
                 </div>
                 <div className={"bg-gray-50 h-16 flex text-left"}>
                     {[-1, 1].map(c => {
@@ -110,7 +110,7 @@ export default function MainPage() {
                         return (<div key={`cohort${c}`} onClick={() => setCohort(c as -1 | 1)}
                                      className={`w-1/2 ${c == cohort ? 'text-gray-800' : 'text-gray-500'} relative overflow-hidden` + (c == cohort ? ` ${color.bgLight}` : "")}>
                                 <p className={"text-xs mt-2 ml-4 mb-0"}>{c == -1 ? "Previous" : "Up Next"}</p>
-                                <p className={"ml-4 mt-1 mb-3 font-semiheavy"}>{p?.name}</p>
+                                <p className={"ml-4 mt-1 mb-3 font-semiheavy line-clamp-1 text-ellipsis"}>{p?.name}</p>
                                 {c == cohort && <div className={`${color.bg} w-full absolute bottom-[-1px] rounded h-1`}/>}
                             </div>
                         )})}
@@ -122,17 +122,22 @@ export default function MainPage() {
                                 .map(p =>
                                     <div key={"performer" + p.name} className={"h-11 w-full flex justify-between"}>
                                         <div
-                                            className={"text-left flex overflow-hidden whitespace-nowrap my-auto flex-grow"}>
-                                            <p className={"pl-4"}>{p.name}</p>
-                                            {p.artists && <div
-                                                className={"flex-grow my-auto overflow-hidden whitespace-nowrap text-ellipsis text-xs text-gray-500"}>
-                                                <p className={"inline"}>&nbsp;by</p>
-                                                {([] as any[]).concat(...p.artists.map((a, i) => [
-                                                    <p key={"artist" + i}
-                                                       className={"inline font-semiheavy"}>&nbsp;{a}</p>,
-                                                    <p key={"c" + i} className={"inline font-light"}>,</p>
-                                                ])).slice(0, -1)}
-                                            </div>}
+                                            className={"pl-4 h-full text-left flex-wrap flex overflow-hidden whitespace-nowrap my-auto flex-grow"}>
+                                            <p className={"overflow-hidden my-auto text-ellipsis"}>{p.name}{p.artists && " "}</p>
+                                            {p.artists && <p className={"my-auto overflow-hidden inline whitespace-nowrap text-ellipsis text-xs text-gray-500"}>by</p>}
+                                            {p.artists && ([] as any[]).concat(...p.artists.map((a, i) => [
+                                                <p key={"artist" + i} className={"my-auto overflow-hidden inline whitespace-nowrap text-ellipsis text-xs text-gray-500 font-semiheavy"}>&nbsp;{a}</p>,
+                                                <p key={"c" + i} className={"my-auto overflow-hidden inline whitespace-nowrap text-ellipsis text-xs text-gray-500 font-light"}>,</p>
+                                            ])).slice(0, -1)}
+                                            {/*{p.artists && <div*/}
+                                            {/*    className={"flex-grow my-auto overflow-hidden whitespace-nowrap text-ellipsis text-xs text-gray-500"}>*/}
+                                            {/*    <p className={"inline"}>by</p>*/}
+                                            {/*    {([] as any[]).concat(...p.artists.map((a, i) => [*/}
+                                            {/*        <p key={"artist" + i}*/}
+                                            {/*           className={"inline font-semiheavy"}>&nbsp;{a}</p>,*/}
+                                            {/*        <p key={"c" + i} className={"inline font-light"}>,</p>*/}
+                                            {/*    ])).slice(0, -1)}*/}
+                                            {/*</div>}*/}
                                         </div>
                                         {cohort == 1 ? <button onClick={() => {
                                             const {uid} = p;
@@ -150,7 +155,7 @@ export default function MainPage() {
                                                 <BiBell className={"m-auto"}/> :
                                                 <BiBellOff className={"m-auto"}/>
                                             }
-                                        </button> : <p className={"text-xs text-gray-4ad00 z-50 mr-4 my-auto"}>Already performed</p>}
+                                        </button> : <p className={"text-xs text-gray-400 flex-shrink-0 z-50 mr-4 my-auto"}>Already performed</p>}
                                     </div>
                                 )}
                             <div className={"h-[calc(100%-2.75rem)]"}/>
