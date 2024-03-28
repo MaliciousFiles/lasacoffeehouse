@@ -27,15 +27,17 @@ export default function MainPage() {
         getToken(messaging, {vapidKey: "BKTiO6q1fNuQyg35h5_2PAzJhCktM0hur4llEn1gIB5Dlf6oCRCD5RIA4OY6BJvdR1UifBM22hAcKwVMc-OSUnc"})
             .then(token => {
                 if (token) {
-                    set(ref(database, `/fcm/${token}/last_used`), Date.now()).then();
+                    const updateLastUsed = () => set(ref(database, `/fcm/${token}/last_used`), Date.now());
+                    document.addEventListener('visibilitychange', () => {
+                        document.visibilityState === 'visible' && updateLastUsed();
+                    })
+                    updateLastUsed();
 
                     setFbToken(token);
+
+
                 }
             })
-
-        document.addEventListener('visibilitychange', () => {
-            fbToken && set(ref(database, `/fcm/${fbToken}/last_used`), Date.now()).then();
-        })
 
         // just let the SW handle it
         onMessage(messaging, (payload) => {
