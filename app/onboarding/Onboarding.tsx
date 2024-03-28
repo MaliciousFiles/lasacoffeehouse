@@ -15,13 +15,12 @@ export default function Onboarding(props: {flow: Flow, children: ReactNode | Rea
     const [pwa, setPWA] = useState(false);
     const [iOS, setIOS] = useState(true);
 
+    const [notif, setNotif] = useState(props.flow != Flow.MAIN ? 'granted' : typeof(Notification) === 'undefined' ? 'default' :  Notification.permission);
+
     useEffect(() => {
         setPWA(window.matchMedia('(display-mode: standalone)').matches);
         setIOS(/iPad|iPhone|iPod/.test(navigator.platform));
-    }, []);
 
-    const [notif, setNotif] = useState(props.flow != Flow.MAIN ? 'granted' : typeof(Notification) === 'undefined' ? 'default' :  Notification.permission);
-    useEffect(() => {
         navigator.permissions.query({name:'notifications'}).then(function(perm) {
             perm.onchange = () => {
                 setNotif(Notification.permission);
