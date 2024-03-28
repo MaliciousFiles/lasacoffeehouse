@@ -92,6 +92,33 @@ export default function MainPage() {
         backgroundRef.current.style.backgroundPosition = image ? 'center top' : ''
     }, [image, backgroundRef]);
 
+    const performerContainers = useRef<HTMLDivElement[]>([]);
+
+    useEffect(() => {
+        // if (performerContainers.current.length != (cohort == -1 ? currentPerformer - 1 : performers.length - currentPerformer - 2)) return;
+
+         for (const container of performerContainers.current) {
+            if (container === null) continue;
+            const rect = container.getBoundingClientRect();
+
+            let oldText = null;
+            for (const text of Array.from(container.children)) {
+                const pos = text.getBoundingClientRect().y;
+
+                if (pos < rect.y + rect.height/2 && text.textContent == "by") {
+                    text.textContent = " by"
+                }
+
+                if (oldText && pos >= rect.bottom) {
+                    oldText.textContent = "...";
+                    break;
+                }
+
+                oldText = text;
+            }
+        }
+    }, [cohort, performerContainers]);
+
     return (
         <div className={`flex flex-col h-full`} >
             <StageSelector stages={Object.keys(data)} selected={selectedStage} setSelected={setStage} className={"h-12 z-50"} />
@@ -99,9 +126,9 @@ export default function MainPage() {
             <div className={`h-[35%]`} />
             <div className={"bg-white z-10 h-[65%] rounded-t-2xl flex flex-col overflow-hidden"}>
                 <div
-                    className={`flex flex-col ${color.performerText} px-4 justify-evenly w-full flex-shrink-0 h-20 pt-3 bg-gradient-to-b ${color.performerBg} m-auto`}>
+                    className={`flex flex-col ${color.performerText} px-4 justify-evenly w-full flex-shrink-0 h-20 py-3 bg-gradient-to-b ${color.performerBg} m-auto`}>
                     <p className={"text-3xl text-ellipsis line-clamp-1 leading-7 m-1 font-heavy"}>{performers[currentPerformer]?.name}</p>
-                    <p className={"text-sm text-ellipsis line-clamp-2 font-semiheavy"}>{performers[currentPerformer]?.artists && `Performed by ${performers[currentPerformer]?.artists.join(',')}`}</p>
+                    <p className={"text-sm text-ellipsis line-clamp-1 font-semiheavy"}>{performers[currentPerformer]?.artists && `Performed by ${performers[currentPerformer]?.artists.join(',')}`}</p>
                 </div>
                 <div className={"bg-gray-50 h-16 flex text-left"}>
                     {[-1, 1].map(c => {
@@ -119,15 +146,17 @@ export default function MainPage() {
                     {performers[currentPerformer + cohort] ?
                         <div className={"h-full"}>
                             {(cohort == -1 ? performers.slice(0, currentPerformer - 1).reverse() : performers.slice(currentPerformer + 2))
-                                .map(p =>
-                                    <div key={"performer" + p.name} className={"h-11 w-full flex justify-between"}>
-                                        <div
+                                .map((p, i) =>
+                                    <div key={"performer" + p.name} className={"h-10 w-full flex justify-between"}>
+                                        <div ref={r => performerContainers.current[i] = r!}
                                             className={"pl-4 h-full text-left flex-wrap flex overflow-hidden whitespace-nowrap my-auto flex-grow"}>
-                                            <p className={"overflow-hidden my-auto text-ellipsis"}>{p.name}{p.artists && " "}</p>
-                                            {p.artists && <p className={"my-auto overflow-hidden inline whitespace-nowrap text-ellipsis text-xs text-gray-500"}>by</p>}
+                                            {/* TODO: only add NBSP if */}
+                                            <p className={"h-5 leading-5 text-center overflow-hidden my-auto text-ellipsis"}>{p.name}</p>
+
+                                            {p.artists && <p className={"my-auto h-5 leading-5 text-center overflow-hidden inline whitespace-nowrap text-ellipsis text-xs text-gray-500"}>by</p>}
                                             {p.artists && ([] as any[]).concat(...p.artists.map((a, i) => [
-                                                <p key={"artist" + i} className={"my-auto overflow-hidden inline whitespace-nowrap text-ellipsis text-xs text-gray-500 font-semiheavy"}>&nbsp;{a}</p>,
-                                                <p key={"c" + i} className={"my-auto overflow-hidden inline whitespace-nowrap text-ellipsis text-xs text-gray-500 font-light"}>,</p>
+                                                <p key={"artist" + i} className={"my-auto h-5 leading-5 text-center overflow-hidden inline whitespace-nowrap text-ellipsis text-xs text-gray-500 font-semiheavy"}>&nbsp;{a}</p>,
+                                                <p key={"c" + i} className={"my-auto h-5 leading-5 text-center overflow-hidden inline whitespace-nowrap text-ellipsis text-xs text-gray-500 font-light"}>,</p>
                                             ])).slice(0, -1)}
                                             {/*{p.artists && <div*/}
                                             {/*    className={"flex-grow my-auto overflow-hidden whitespace-nowrap text-ellipsis text-xs text-gray-500"}>*/}
