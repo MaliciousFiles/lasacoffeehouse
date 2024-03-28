@@ -95,15 +95,17 @@ export default function MainPage() {
     const performerContainers = useRef<HTMLDivElement[]>([]);
 
     useEffect(() => {
-        // if (performerContainers.current.length != (cohort == -1 ? currentPerformer - 1 : performers.length - currentPerformer - 2)) return;
-
-         for (const container of performerContainers.current) {
+        for (let c = 0; c < performerContainers.current.length; c++) {
+            const container = performerContainers.current[c]
             if (container === null) continue;
-            const rect = container.getBoundingClientRect();
 
+            const rect = container.getBoundingClientRect();
             let oldText = null;
+
+            let addPad = false;
             for (const text of Array.from(container.children)) {
                 const pos = text.getBoundingClientRect().y;
+                addPad = addPad || pos >= rect.y+rect.height/2;
 
                 if (pos < rect.y + rect.height/2 && text.textContent == "by") {
                     text.textContent = " by"
@@ -116,12 +118,14 @@ export default function MainPage() {
 
                 oldText = text;
             }
+
+            if (c === 0) container.parentElement!.parentElement!.classList.toggle("pt-2", addPad);
         }
     }, [cohort, performerContainers]);
 
     return (
         <div className={`flex flex-col h-full`} >
-            <StageSelector stages={Object.keys(data)} selected={selectedStage} setSelected={setStage} className={"h-12 z-50"} />
+            <StageSelector stages={Object.keys(data)} selected={selectedStage} setSelected={setStage} className={"h-12 z-50 bg-white"} />
             <div ref={backgroundRef} className={`absolute top-10 w-full h-[36%] bg-[--navy] bg-[url(/images/logo.svg)] bg-[length:auto_40%] bg-no-repeat bg-center`} />
             <div className={`h-[35%]`} />
             <div className={"bg-white z-10 h-[65%] rounded-t-2xl flex flex-col overflow-hidden"}>
@@ -150,7 +154,6 @@ export default function MainPage() {
                                     <div key={"performer" + p.name} className={"h-10 w-full flex justify-between"}>
                                         <div ref={r => performerContainers.current[i] = r!}
                                             className={"pl-4 h-full text-left flex-wrap flex overflow-hidden whitespace-nowrap my-auto flex-grow"}>
-                                            {/* TODO: only add NBSP if */}
                                             <p className={"h-5 leading-5 text-center overflow-hidden my-auto text-ellipsis"}>{p.name}</p>
 
                                             {p.artists && <p className={"my-auto h-5 leading-5 text-center overflow-hidden inline whitespace-nowrap text-ellipsis text-xs text-gray-500"}>by</p>}

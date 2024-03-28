@@ -7,7 +7,7 @@ export default function StageSelector(props: {stages: string[], selected: number
 
     return (
         <div
-            className={`flex justify-evenly bg-gray-50 w-full ${className}`}>
+            className={`flex justify-evenly bg-gray-50 w-full ${className ?? ''}`}>
             {stages.map((s, i) =>
                 <div key={"stage" + i + s} onClick={() => setSelected(i)}
                      className={`flex-grow flex ${i == selected ? "bg-gray-200" : ""}`}>
