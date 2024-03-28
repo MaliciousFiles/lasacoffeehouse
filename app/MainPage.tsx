@@ -108,7 +108,7 @@ export default function MainPage() {
                 addPad = addPad || pos >= rect.y+rect.height/2;
 
                 if (pos < rect.y + rect.height/2 && text.textContent == "by") {
-                    text.textContent = " by"
+                    text.textContent = "  by"
                 }
 
                 if (oldText && pos >= rect.bottom) {
@@ -147,7 +147,7 @@ export default function MainPage() {
                         )})}
                 </div>
                 <div ref={scrollView} className={"flex-grow overflow-auto"}>
-                    {performers[currentPerformer + cohort] ?
+                    {performers[currentPerformer + cohort*2] ?
                         <div className={"h-full"}>
                             {(cohort == -1 ? performers.slice(0, currentPerformer - 1).reverse() : performers.slice(currentPerformer + 2))
                                 .map((p, i) =>
@@ -161,15 +161,6 @@ export default function MainPage() {
                                                 <p key={"artist" + i} className={"my-auto h-5 leading-5 text-center overflow-hidden inline whitespace-nowrap text-ellipsis text-xs text-gray-500 font-semiheavy"}>&nbsp;{a}</p>,
                                                 <p key={"c" + i} className={"my-auto h-5 leading-5 text-center overflow-hidden inline whitespace-nowrap text-ellipsis text-xs text-gray-500 font-light"}>,</p>
                                             ])).slice(0, -1)}
-                                            {/*{p.artists && <div*/}
-                                            {/*    className={"flex-grow my-auto overflow-hidden whitespace-nowrap text-ellipsis text-xs text-gray-500"}>*/}
-                                            {/*    <p className={"inline"}>by</p>*/}
-                                            {/*    {([] as any[]).concat(...p.artists.map((a, i) => [*/}
-                                            {/*        <p key={"artist" + i}*/}
-                                            {/*           className={"inline font-semiheavy"}>&nbsp;{a}</p>,*/}
-                                            {/*        <p key={"c" + i} className={"inline font-light"}>,</p>*/}
-                                            {/*    ])).slice(0, -1)}*/}
-                                            {/*</div>}*/}
                                         </div>
                                         {cohort == 1 ? <button onClick={() => {
                                             const {uid} = p;
