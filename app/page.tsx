@@ -2,7 +2,7 @@
 
 import React from "react";
 import Onboarding, {Flow} from "@/app/onboarding/Onboarding";
-import MainPage from "@/app/MainPage";
+import MainPage from "@/app/main/MainPage";
 
 export default function ViewPerformers() {
     return (

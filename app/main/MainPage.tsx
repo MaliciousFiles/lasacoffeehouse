@@ -8,6 +8,7 @@ import FirebaseContext from "@/app/util/firebase/FirebaseContext";
 import {BiBell, BiBellOff} from "react-icons/bi";
 import {getColorScheme} from "@/app/util/util";
 import StageSelector from "@/app/util/StageSelector";
+import PerformerText from "@/app/main/PerformerText";
 
 export default function MainPage() {
     const data = useContext(FirebaseContext);
@@ -105,10 +106,13 @@ export default function MainPage() {
             let addPad = false;
             for (const text of Array.from(container.children)) {
                 const pos = text.getBoundingClientRect().y;
-                addPad = addPad || pos >= rect.y+rect.height/2;
 
-                if (pos < rect.y + rect.height/2 && text.textContent == "by") {
-                    text.textContent = "  by"
+                if (pos < rect.y + rect.height/2) {
+                    if (text.textContent == "by") {
+                        text.textContent = "  by"
+                    }
+                } else {
+                    addPad = true;
                 }
 
                 if (oldText && pos >= rect.bottom) {
@@ -119,9 +123,9 @@ export default function MainPage() {
                 oldText = text;
             }
 
-            if (c === 0) container.parentElement!.parentElement!.classList.toggle("pt-2", addPad);
+            if (c === 0) container.parentElement?.parentElement?.classList.toggle("pt-2", addPad);
         }
-    }, [cohort, performerContainers]);
+    }, [cohort, performerContainers, selectedStage]);
 
     return (
         <div className={`flex flex-col h-full`} >
@@ -152,16 +156,7 @@ export default function MainPage() {
                             {(cohort == -1 ? performers.slice(0, currentPerformer - 1).reverse() : performers.slice(currentPerformer + 2))
                                 .map((p, i) =>
                                     <div key={"performer" + p.name} className={"h-10 w-full flex justify-between"}>
-                                        <div ref={r => performerContainers.current = [...performerContainers.current, r!]}
-                                            className={"pl-4 pr-1 h-full text-left flex-wrap flex overflow-hidden whitespace-nowrap my-auto flex-grow"}>
-                                            <p className={"h-5 leading-5 text-center overflow-hidden my-auto text-ellipsis"}>{p.name}</p>
-
-                                            {p.artists && <p className={"my-auto h-5 leading-5 text-center overflow-hidden inline whitespace-nowrap text-ellipsis text-xs text-gray-500"}>by</p>}
-                                            {p.artists && ([] as any[]).concat(...p.artists.map((a, i) => [
-                                                <p key={"artist" + i} className={"my-auto h-5 leading-5 text-center overflow-hidden inline whitespace-nowrap text-ellipsis text-xs text-gray-500 font-semiheavy"}>&nbsp;{a}</p>,
-                                                <p key={"c" + i} className={"my-auto h-5 leading-5 text-center overflow-hidden inline whitespace-nowrap text-ellipsis text-xs text-gray-500 font-light"}>,</p>
-                                            ])).slice(0, -1)}
-                                        </div>
+                                        <PerformerText performer={p} first={i == 0} />
                                         {cohort == 1 ? <button onClick={() => {
                                             const {uid} = p;
 
