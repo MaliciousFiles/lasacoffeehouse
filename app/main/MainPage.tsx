@@ -129,10 +129,10 @@ export default function MainPage() {
 
     return (
         <div className={`flex flex-col h-full`} >
-            <StageSelector stages={Object.keys(data)} selected={selectedStage} setSelected={setStage} className={"h-12 z-50 bg-white"} />
-            <div ref={backgroundRef} className={`absolute top-10 w-full h-[36%] bg-[--navy] bg-[url(/images/logo.svg)] bg-[length:auto_40%] bg-no-repeat bg-center`} />
+            <StageSelector stages={Object.keys(data)} selected={selectedStage} setSelected={setStage} className={"h-14 z-50 bg-white rounded-b-2xl overflow-hidden"} />
+            <div ref={backgroundRef} className={`absolute top-10 w-full h-[37%] bg-[--navy] bg-[url(/images/logo.svg)] bg-[length:auto_40%] bg-no-repeat bg-center`} />
             <div className={`h-[35%]`} />
-            <div className={"bg-white z-10 h-[65%] rounded-t-2xl flex flex-col overflow-hidden"}>
+            <div className={"bg-white z-10 h-[65%] rounded-t-3xl flex flex-col overflow-hidden"}>
                 <div
                     className={`flex flex-col ${color.performerText} px-4 justify-evenly w-full flex-shrink-0 h-20 py-3 bg-gradient-to-b ${color.performerBg} m-auto`}>
                     <p className={"text-3xl text-ellipsis line-clamp-1 leading-7 m-1 font-heavy"}>{performers[currentPerformer]?.name}</p>
