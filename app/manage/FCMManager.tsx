@@ -22,7 +22,7 @@ export async function isValidJwt(jwt: string) {
 
 export async function doNothing() {
     console.log("doing nothing");
-    await fetch("https://lasacoffeehouse.com/hi!", {method: "POST"});
+    await fetch("https://lasacoffeehouse.com/hi!", {method: "POST"}).catch(console.log);
 }
 
 export async function setCurrentPerformer(jwt: string, stage: string, performer: number) {
@@ -138,4 +138,6 @@ export async function updateClients(jwt: string, stage: string, current: Perform
             }
         }
     }
+
+    console.log("done updating");
 }
