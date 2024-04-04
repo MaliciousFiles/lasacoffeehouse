@@ -83,7 +83,11 @@ export async function getNumFCM(jwt: string) {
     return Object.keys((await getFCM())).length;
 }
 
-async function sendBatch(messages: TokenMessage[]) {
+// 1000 is about the limit within 10 seconds, so needs to be batched client-side
+export async function sendMessageBatch(jwt: string, messages: TokenMessage[]) {
+    if (!(await isValidJwt(jwt))) return;
+    if (messages.length > 500) throw new Error("Must be fewer than 500 messages");
+
     const database = getDatabase(firebase);
     const messaging = getMessaging(firebase);
 
@@ -96,8 +100,18 @@ async function sendBatch(messages: TokenMessage[]) {
     }
 }
 
+async function batchMessages(messages: TokenMessage[]) {
+    const batches: TokenMessage[][] = [];
+
+    for (let i = 0; i < messages.length; i += 500) {
+        batches.push(messages.slice(i, i + 500));
+    }
+
+    return batches;
+}
+
 export async function sendNotification(jwt: string, title: string, body: string) {
-    if (!(await isValidJwt(jwt))) return;
+    if (!(await isValidJwt(jwt))) return [];
     const fcm = await getFCM();
 
     let messages: TokenMessage[] = [];
@@ -111,11 +125,11 @@ export async function sendNotification(jwt: string, title: string, body: string)
         });
     }
 
-    await sendBatch(messages);
+    return await batchMessages(messages);
 }
 
 export async function updateClients(jwt: string, stage: string, current: Performer, next: Performer) {
-    if (!(await isValidJwt(jwt))) return;
+    if (!(await isValidJwt(jwt))) return [];
 
     const fcm = await getFCM();
 
@@ -138,5 +152,5 @@ export async function updateClients(jwt: string, stage: string, current: Perform
         }
     }
 
-    await sendBatch(messages);
+    return await batchMessages(messages);
 }

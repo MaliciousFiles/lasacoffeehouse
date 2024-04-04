@@ -8,7 +8,7 @@ import {RiDraggable} from "react-icons/ri";
 import {FiEdit, FiTrash} from "react-icons/fi";
 import {
     getNumFCM,
-    removePerformer,
+    removePerformer, sendMessageBatch,
     sendNotification,
     setCurrentPerformer,
     updateClients,
@@ -19,6 +19,7 @@ import scrollIntoView from "scroll-into-view-if-needed";
 import Popup, {InputList} from "@/app/util/Popup";
 import {getColorScheme, parseArtists} from "@/app/util/util";
 import StageSelector from "@/app/util/StageSelector";
+import {TokenMessage} from "firebase-admin/messaging";
 
 export default function ManagePage() {
     const data = useContext(FirebaseContext);
@@ -42,10 +43,12 @@ export default function ManagePage() {
         setFirebaseLoading(false);
     }, [data]);
 
-    const updateFirebase = (func: (jwt: string)=>Promise<void>, fromUser: boolean = true) => {
+    const updateFirebase = (func: (jwt: string)=>(Promise<void>|Promise<TokenMessage[][]>), fromUser: boolean = true) => {
         if(fromUser) setFirebaseLoading(true);
 
-        getAuth(firebase).currentUser?.getIdToken().then(func);
+        getAuth(firebase).currentUser?.getIdToken().then(jwt=>func(jwt).then(messages =>
+            messages && messages.forEach(b=>sendMessageBatch(jwt, b))
+        ));
     }
 
     const [selectedStage, setStage] = useState(0);
