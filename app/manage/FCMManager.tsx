@@ -22,6 +22,7 @@ export async function isValidJwt(jwt: string) {
 
 export async function doNothing() {
     console.log("doing nothing");
+    await fetch("https://lasacoffeehouse.com/hi!", {method: "POST"});
 }
 
 export async function setCurrentPerformer(jwt: string, stage: string, performer: number) {
@@ -128,7 +129,7 @@ export async function updateClients(jwt: string, stage: string, current: Perform
                         token,
                         notification: {
                             title: !i ? "Performing Now" : "Up Next",
-                            body: !i ? `${performer.name} is on stage!` : `${performer.name} is about to come on`
+                            body: !i ? `${performer.name} is on stage!` : `${performer.name} is about to go on`
                         }
                     }).then().catch(() => {
                         return database.ref(`/fcm/${token}`).remove();
