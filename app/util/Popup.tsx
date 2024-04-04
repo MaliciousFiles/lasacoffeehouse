@@ -39,7 +39,7 @@ export default function Popup(props: {title: string, open: boolean, colorScheme:
                         {closeable &&
                             <div className={"mx-3 flex justify-evenly"}>
                                 <button onClick={() => close(true)} className={`inline-block px-5 ${colorScheme.border} ${colorScheme.text} rounded-xl py-1.5`}>Cancel</button>
-                                <button onClick={() => close(false)} className={`inline-block px-5 ${colorScheme.bg} ${colorScheme.textLight} rounded-xl py-1.5`}>Submit</button>
+                                <button onClick={() => close(false)} className={`inline-block px-5 ${colorScheme.bg} ${colorScheme.textLight} rounded-xl py-1.5`}>Continue</button>
                             </div>}
                     </div>
                 </div>

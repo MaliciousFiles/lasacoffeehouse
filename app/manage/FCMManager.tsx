@@ -99,6 +99,8 @@ export async function sendNotification(jwt: string, title: string, body: string)
     const fcm = await getFCM();
 
     for (let token in fcm) {
+        console.log("sending notification to", token);
+
         messaging.send({
             token,
             notification: {
@@ -124,11 +126,12 @@ export async function updateClients(jwt: string, stage: string, current: Perform
                 const performer = i == 0 ? current : next;
 
                 if (fcm[token][stage].some(((p: any) => p === performer?.uid))) {
+                    console.log("updating", token);
                     messaging.send({
                         token,
                         notification: {
                             title: !i ? "Performing Now" : "Up Next",
-                            body: !i ? `${performer.name} is now performing!` : `${performer.name} is performing next!`
+                            body: !i ? `${performer.name} is on stage!` : `${performer.name} is about to come on`
                         }
                     }).then().catch(() => {
                         return database.ref(`/fcm/${token}`).remove();

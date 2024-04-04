@@ -178,7 +178,7 @@ export default function MainPage() {
                                 )}
                             <div className={"h-[calc(100%-2.75rem)]"}/>
                         </div> :
-                        <p className={"mt-2"}>{cohort == -1 ? "Welcome to Coffeehouse!" : "All done!"}</p>
+                        <p className={"mt-2"}>{cohort == -1 ? "Welcome to Coffeehouse!" : "That's a wrap!"}</p>
                     }
 
                     {/* width = width of button + mr of button - right of this*/}
