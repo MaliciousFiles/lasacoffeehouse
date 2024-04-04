@@ -200,13 +200,14 @@ export default function ManagePage() {
 
     const currentPerformer = data[stage].performers[data[stage].currentPerformer];
 
+    const [text, setText] = useState("Do Nothing")
     return (
         <div className={"bg-white flex w-full h-full flex-col"}>
             <div className={"flex justify-between flex-shrink-0 px-3 py-2"}>
                 <p className={"text-sm my-auto text-gray-800 font-semiheavy mx-0"}>Manager Hub</p>
                 <button className={"bg-gray-100 rounded-2xl text-xs text-gray-600 px-3 py-1"} onClick={()=>getAuth(firebase).updateCurrentUser(null)}>Log Out</button>
             </div>
-            <button onClick={doNothing}>Do Nothing</button>
+            <button onClick={() => doNothing().then(() => setText("Nothing Done")).then(()=>new Promise(r=>setTimeout(r,2000)).then(()=>setText("Do Nothing")))}>{text}</button>
 
             <Popup title={"Send Notification"} open={notifPopup} colorScheme={color}
                    close={(cancelled: boolean, inputs: InputList) => {
