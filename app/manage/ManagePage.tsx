@@ -200,20 +200,17 @@ export default function ManagePage() {
 
     const currentPerformer = data[stage].performers[data[stage].currentPerformer];
 
-    const [text, setText] = useState("Do Nothing")
     return (
         <div className={"bg-white flex w-full h-full flex-col"}>
             <div className={"flex justify-between flex-shrink-0 px-3 py-2"}>
                 <p className={"text-sm my-auto text-gray-800 font-semiheavy mx-0"}>Manager Hub</p>
                 <button className={"bg-gray-100 rounded-2xl text-xs text-gray-600 px-3 py-1"} onClick={()=>getAuth(firebase).updateCurrentUser(null)}>Log Out</button>
             </div>
-            <button onClick={() => doNothing().then(() => setText("Nothing Done")).then(()=>new Promise(r=>setTimeout(r,2000)).then(()=>setText("Do Nothing")))}>{text}</button>
 
             <Popup title={"Send Notification"} open={notifPopup} colorScheme={color}
                    close={(cancelled: boolean, inputs: InputList) => {
                        setNotifPopup(false);
                        if (!cancelled) {
-                           updateFirebase(async jwt => setNumFCM((await getNumFCM(jwt))!))
                            setNotifConfirm(inputs as { title: string, body: string });
                        }
                    }}>
@@ -245,7 +242,10 @@ export default function ManagePage() {
 
             <div className={`${color.bgLight} flex flex-col flex-shrink-0`}>
                 <button className={`rounded-2xl text-xs mr-4 mt-2 px-2.5 py-1 ml-auto ${color.bgDark} ${color.textLight}`}
-                        onClick={() => setNotifPopup(true)}>Send Notification</button>
+                        onClick={() => {
+                            updateFirebase(async jwt => setNumFCM((await getNumFCM(jwt))!));
+                            setNotifPopup(true);
+                        }}>Send Notification</button>
                 <div className={"mx-5"}>
                     <p className={"text-xs mt-2 text-left font-semiheavy text-gray-400"}>Currently Performing</p>
                     <p className={"text-2xl mt-1 text-gray-800 line-clamp-1 font-semiheavy text-left"}>{currentPerformer.name}</p>

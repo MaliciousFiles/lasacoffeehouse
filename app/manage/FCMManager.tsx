@@ -1,13 +1,12 @@
 "use server";
 
 import {cert, getApps, initializeApp} from 'firebase-admin/app';
-import {getMessaging, Message, TokenMessage} from 'firebase-admin/messaging';
+import {getMessaging, TokenMessage} from 'firebase-admin/messaging';
 import {getDatabase} from "firebase-admin/database";
 import {getAuth} from "firebase-admin/auth";
 import {AES, enc} from "crypto-js";
 import {Performer} from "@/app/util/firebase/init";
 
-// console.log(enc.Utf8.stringify(AES.decrypt(process.env.FIREBASE_ADMIN_DATA!, enc.Utf8.parse(process.env.FIREBASE_ADMIN_CRED!.slice(16)), {iv: enc.Utf8.parse(process.env.FIREBASE_ADMIN_CRED!.slice(0, 16))})))
 const firebase = getApps().find(a => a.name == "Admin App") ??
     initializeApp({
         credential: cert(JSON.parse(enc.Utf8.stringify(AES.decrypt(process.env.FIREBASE_ADMIN_DATA!, enc.Utf8.parse(process.env.FIREBASE_ADMIN_CRED!.slice(16)), {iv: enc.Utf8.parse(process.env.FIREBASE_ADMIN_CRED!.slice(0, 16))})))),
@@ -18,11 +17,6 @@ export async function isValidJwt(jwt: string) {
     try {
         return await getAuth(firebase).verifyIdToken(jwt, false);
     } catch { return false; }
-}
-
-export async function doNothing() {
-    console.log("doing nothing");
-    await fetch("https://lasacoffeehouse.com/", {method: "POST"}).catch(console.log);
 }
 
 export async function setCurrentPerformer(jwt: string, stage: string, performer: number) {
@@ -93,8 +87,6 @@ async function sendBatch(messages: TokenMessage[]) {
     const database = getDatabase(firebase);
     const messaging = getMessaging(firebase);
 
-    console.log("["+new Date().toLocaleTimeString("CDT")+"] sending", JSON.stringify(messages));
-
     for (let i = 0; i < messages.length; i += 500) {
         const batch = await messaging.sendEach(messages.slice(i, i + 500));
         batch.responses.forEach((response, j) => {
@@ -102,8 +94,6 @@ async function sendBatch(messages: TokenMessage[]) {
             database.ref(`/fcm/${messages[i + j].token}`).remove().then();
         });
     }
-
-    console.log("["+new Date().toLocaleTimeString("CDT")+"] sent")
 }
 
 export async function sendNotification(jwt: string, title: string, body: string) {

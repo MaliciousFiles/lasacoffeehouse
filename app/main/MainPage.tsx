@@ -93,40 +93,6 @@ export default function MainPage() {
         backgroundRef.current.style.backgroundPosition = image ? 'center top' : ''
     }, [image, backgroundRef]);
 
-    const performerContainers = useRef<HTMLDivElement[]>([]);
-
-    useEffect(() => {
-        for (let c = 0; c < performerContainers.current.length; c++) {
-            const container = performerContainers.current[c]
-            if (container === null) continue;
-
-            const rect = container.getBoundingClientRect();
-            let oldText = null;
-
-            let addPad = false;
-            for (const text of Array.from(container.children)) {
-                const pos = text.getBoundingClientRect().y;
-
-                if (pos < rect.y + rect.height/2) {
-                    if (text.textContent == "by") {
-                        text.textContent = "  by"
-                    }
-                } else {
-                    addPad = true;
-                }
-
-                if (oldText && pos >= rect.bottom) {
-                    oldText.textContent = "...";
-                    break;
-                }
-
-                oldText = text;
-            }
-
-            if (c === 0) container.parentElement?.parentElement?.classList.toggle("pt-2", addPad);
-        }
-    }, [cohort, performerContainers, selectedStage]);
-
     return (
         <div className={`flex flex-col h-full`} >
             <StageSelector stages={Object.keys(data)} selected={selectedStage} setSelected={setStage} className={"h-14 z-50 bg-white rounded-b-2xl overflow-hidden"} />
