@@ -7,6 +7,7 @@ import FirebaseContext from "@/app/util/firebase/FirebaseContext";
 import {RiDraggable} from "react-icons/ri";
 import {FiEdit, FiTrash} from "react-icons/fi";
 import {
+    doNothing,
     getNumFCM,
     removePerformer,
     sendNotification,
@@ -205,6 +206,7 @@ export default function ManagePage() {
                 <p className={"text-sm my-auto text-gray-800 font-semiheavy mx-0"}>Manager Hub</p>
                 <button className={"bg-gray-100 rounded-2xl text-xs text-gray-600 px-3 py-1"} onClick={()=>getAuth(firebase).updateCurrentUser(null)}>Log Out</button>
             </div>
+            <button onClick={doNothing}>Do Nothing</button>
 
             <Popup title={"Send Notification"} open={notifPopup} colorScheme={color}
                    close={(cancelled: boolean, inputs: InputList) => {

@@ -14,28 +14,25 @@ const firebase = getApps().find(a => a.name == "Admin App") ??
         databaseURL: "https://lasacoffeehouse-74e2e-default-rtdb.firebaseio.com/"
     }, "Admin App")
 
-async function isInvalid(jwt: string) {
-    // TODO: some sort of logging on failure?
+export async function isValidJwt(jwt: string) {
     try {
-        await getAuth(firebase).verifyIdToken(jwt, true);
-    } catch { return true; }
-
-    return false;
+        return await getAuth(firebase).verifyIdToken(jwt, false);
+    } catch { return false; }
 }
 
-export async function isValidJwt(jwt: string) {
-    return await getAuth(firebase).verifyIdToken(jwt, false);
+export async function doNothing() {
+    console.log("doing nothing");
 }
 
 export async function setCurrentPerformer(jwt: string, stage: string, performer: number) {
-    if (await isInvalid(jwt)) return;
+    if (!(await isValidJwt(jwt))) return;
     const database = getDatabase(firebase);
 
     await database.ref(`/data/${stage}/currentPerformer`).set(performer);
 }
 
 export async function updatePerformers(jwt: string, stage: string, performers: Performer[]) {
-    if (await isInvalid(jwt)) return;
+    if (!(await isValidJwt(jwt))) return;
     const ref = getDatabase(firebase).ref(`/data/${stage}/performers`);
 
     const current = (await ref.get()).val();
@@ -48,7 +45,7 @@ export async function updatePerformers(jwt: string, stage: string, performers: P
 }
 
 export async function updatePerformer(jwt: string, stage: string, performer: number, name: string, artists: string[]) {
-    if (await isInvalid(jwt)) return;
+    if (!(await isValidJwt(jwt))) return;
     const database = getDatabase(firebase);
 
     await database.ref(`/data/${stage}/performers/${performer}/name`).set(name);
@@ -56,7 +53,7 @@ export async function updatePerformer(jwt: string, stage: string, performer: num
 }
 
 export async function removePerformer(jwt: string, stage: string, performer: number) {
-    if (await isInvalid(jwt)) return;
+    if (!(await isValidJwt(jwt))) return;
     const ref = getDatabase(firebase).ref(`/data/${stage}/performers`);
 
     const performers = (await ref.get()).val()
@@ -86,13 +83,13 @@ async function getFCM() {
 }
 
 export async function getNumFCM(jwt: string) {
-    if (await isInvalid(jwt)) return;
+    if (!(await isValidJwt(jwt))) return;
 
     return Object.keys((await getFCM())).length;
 }
 
 export async function sendNotification(jwt: string, title: string, body: string) {
-    if (await isInvalid(jwt)) return;
+    if (!(await isValidJwt(jwt))) return;
     const database = getDatabase(firebase);
     const messaging = getMessaging(firebase);
 
@@ -114,7 +111,7 @@ export async function sendNotification(jwt: string, title: string, body: string)
 }
 
 export async function updateClients(jwt: string, stage: string, current: Performer, next: Performer) {
-    if (await isInvalid(jwt)) return;
+    if (!(await isValidJwt(jwt))) return;
     const database = getDatabase(firebase);
     const messaging = getMessaging(firebase);
 
