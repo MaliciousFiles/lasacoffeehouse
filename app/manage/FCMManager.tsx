@@ -89,11 +89,25 @@ export async function getNumFCM(jwt: string) {
     return Object.keys((await getFCM())).length;
 }
 
-export async function sendNotification(jwt: string, title: string, body: string) {
-    if (!(await isValidJwt(jwt))) return;
+async function sendBatch(messages: TokenMessage[]) {
     const database = getDatabase(firebase);
     const messaging = getMessaging(firebase);
 
+    console.log("["+new Date().toLocaleTimeString("CDT")+"] sending", JSON.stringify(messages));
+
+    for (let i = 0; i < messages.length; i += 500) {
+        const batch = await messaging.sendEach(messages.slice(i, i + 500));
+        batch.responses.forEach((response, j) => {
+            if (response.success) return;
+            database.ref(`/fcm/${messages[i + j].token}`).remove().then();
+        });
+    }
+
+    console.log("["+new Date().toLocaleTimeString("CDT")+"] sent")
+}
+
+export async function sendNotification(jwt: string, title: string, body: string) {
+    if (!(await isValidJwt(jwt))) return;
     const fcm = await getFCM();
 
     let messages: TokenMessage[] = [];
@@ -107,20 +121,11 @@ export async function sendNotification(jwt: string, title: string, body: string)
         });
     }
 
-    console.log("["+new Date().toLocaleTimeString("CDT")+"] sending", JSON.stringify(messages));
-
-    const batch = await messaging.sendEach(messages);
-    batch.responses.forEach((response, i) => {
-        if (response.success) return;
-        database.ref(`/fcm/${messages[i].token}`).remove().then();
-    });
-    console.log("["+new Date().toLocaleTimeString("CDT")+"] sent")
+    await sendBatch(messages);
 }
 
 export async function updateClients(jwt: string, stage: string, current: Performer, next: Performer) {
     if (!(await isValidJwt(jwt))) return;
-    const database = getDatabase(firebase);
-    const messaging = getMessaging(firebase);
 
     const fcm = await getFCM();
 
@@ -143,11 +148,5 @@ export async function updateClients(jwt: string, stage: string, current: Perform
         }
     }
 
-    console.log("["+new Date().toLocaleTimeString("CDT")+"] sending", JSON.stringify(messages));
-    const batch = await messaging.sendEach(messages);
-    batch.responses.forEach((response, i) => {
-        if (response.success) return;
-        database.ref(`/fcm/${messages[i].token}`).remove().then();
-    });
-    console.log("["+new Date().toLocaleTimeString("CDT")+"] sent")
+    await sendBatch(messages);
 }
