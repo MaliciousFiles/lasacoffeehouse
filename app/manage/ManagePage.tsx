@@ -54,22 +54,6 @@ export default function ManagePage() {
     const [selectedStage, setStage] = useState(0);
     const stage = Object.keys(data)[selectedStage];
 
-    const [editingName, setEditingName] = useState(-1);
-    const [origName, setOrigName] = useState("");
-    useEffect(() => {
-        const name = document.getElementById("name"+editingName);
-        if (!name) return;
-
-        setOrigName(name.textContent ?? "");
-
-        const range = document.createRange();
-        range.setStart(name, 0);
-
-        const sel = window.getSelection();
-        sel?.removeAllRanges();
-        sel?.addRange(range);
-    }, [editingName]);
-
     const [dragging, setDragging] = useState(-1);
     const performersContainer = useRef<HTMLDivElement>(null);
     const svgOffset = useRef({x: 0, y: 0});
