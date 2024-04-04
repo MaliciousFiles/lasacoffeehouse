@@ -7,7 +7,6 @@ import FirebaseContext from "@/app/util/firebase/FirebaseContext";
 import {RiDraggable} from "react-icons/ri";
 import {FiEdit, FiTrash} from "react-icons/fi";
 import {
-    doNothing,
     getNumFCM,
     removePerformer,
     sendNotification,
