@@ -1,7 +1,7 @@
 "use server";
 
 import {cert, getApps, initializeApp} from 'firebase-admin/app';
-import {getMessaging} from 'firebase-admin/messaging';
+import {getMessaging, Message, TokenMessage} from 'firebase-admin/messaging';
 import {getDatabase} from "firebase-admin/database";
 import {getAuth} from "firebase-admin/auth";
 import {AES, enc} from "crypto-js";
@@ -22,7 +22,7 @@ export async function isValidJwt(jwt: string) {
 
 export async function doNothing() {
     console.log("doing nothing");
-    await fetch("https://lasacoffeehouse.com/hi!", {method: "POST"}).catch(console.log);
+    await fetch("https://lasacoffeehouse.com/", {method: "POST"}).catch(console.log);
 }
 
 export async function setCurrentPerformer(jwt: string, stage: string, performer: number) {
@@ -96,19 +96,25 @@ export async function sendNotification(jwt: string, title: string, body: string)
 
     const fcm = await getFCM();
 
+    let messages: TokenMessage[] = [];
     for (let token in fcm) {
-        console.log("sending notification to", token);
-
-        messaging.send({
+        messages.push({
             token,
             notification: {
                 title: title,
                 body: body
             }
-        }).then().catch(() => {
-                return database.ref(`/fcm/${token}`).remove();
-            });
+        });
     }
+
+    console.log("["+new Date().toLocaleTimeString("CDT")+"] sending", JSON.stringify(messages));
+
+    const batch = await messaging.sendEach(messages);
+    batch.responses.forEach((response, i) => {
+        if (response.success) return;
+        database.ref(`/fcm/${messages[i].token}`).remove().then();
+    });
+    console.log("["+new Date().toLocaleTimeString("CDT")+"] sent")
 }
 
 export async function updateClients(jwt: string, stage: string, current: Performer, next: Performer) {
@@ -118,26 +124,30 @@ export async function updateClients(jwt: string, stage: string, current: Perform
 
     const fcm = await getFCM();
 
+    let messages: TokenMessage[] = [];
     for (let token in fcm) {
         if (stage in fcm[token]) {
             for (let i = 0; i <= 1; i++) {
                 const performer = i == 0 ? current : next;
 
                 if (fcm[token][stage].some(((p: any) => p === performer?.uid))) {
-                    console.log("updating", token);
-                    messaging.send({
+                    messages.push({
                         token,
                         notification: {
                             title: !i ? "Performing Now" : "Up Next",
                             body: !i ? `${performer.name} is on stage!` : `${performer.name} is about to go on`
                         }
-                    }).then().catch(() => {
-                        return database.ref(`/fcm/${token}`).remove();
                     });
                 }
             }
         }
     }
 
-    console.log("done updating");
+    console.log("["+new Date().toLocaleTimeString("CDT")+"] sending", JSON.stringify(messages));
+    const batch = await messaging.sendEach(messages);
+    batch.responses.forEach((response, i) => {
+        if (response.success) return;
+        database.ref(`/fcm/${messages[i].token}`).remove().then();
+    });
+    console.log("["+new Date().toLocaleTimeString("CDT")+"] sent")
 }
