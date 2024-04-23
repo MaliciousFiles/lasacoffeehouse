@@ -10,7 +10,6 @@ import SizeCheck from "@/app/util/SizeCheck";
 export const metadata: Metadata = {
     title: 'LASA Coffeehouse',
     description: 'Performer viewer for Coffeehouse',
-    manifest: '/manifest.webmanifest',
 }
 
 const inter = Inter({ subsets: ['latin'] })
