@@ -21,6 +21,8 @@ import {getColorScheme, parseArtists} from "@/app/util/util";
 import StageSelector from "@/app/util/StageSelector";
 import {TokenMessage} from "firebase-admin/messaging";
 import {MoonLoader, PulseLoader, ScaleLoader, SyncLoader} from "react-spinners";
+import {IoLockClosedOutline, IoLockOpenOutline} from "react-icons/io5";
+import Disableable from "../util/Disableable";
 
 export default function ManagePage() {
     const data = useContext(FirebaseContext);
@@ -85,9 +87,9 @@ export default function ManagePage() {
         performerPositions.current[idx] += direction;
         performerPositions.current[idx2] -= direction;
 
-        for (let i = 0; i < currentChips.current.length; i++) {
-            currentChips.current[i]?.classList.toggle("invisible", performerPositions.current[i] != currentIdx);
-        }
+        // for (let i = 0; i < currentChips.current.length; i++) {
+        //     currentChips.current[i]?.classList.toggle("hidden", performerPositions.current[i] != currentIdx);
+        // }
     }
 
     const startDrag = (idx: number, touchEvt?: React.TouchEvent<HTMLDivElement>, mouseEvt?: React.MouseEvent<HTMLDivElement>) => {
@@ -165,7 +167,6 @@ export default function ManagePage() {
 
             updateFirebase(async (jwt) => {
                 await updatePerformers(jwt, stage, performers.map(withoutImage));
-                console.log("done");
                 await setCurrentPerformer(jwt, stage, currentIdx);
             });
             setDragging(-1);
@@ -197,6 +198,14 @@ export default function ManagePage() {
     const [editingPerformer, setEditingPerformer] = useState(-1);
 
     const currentPerformer = data[stage].performers[currentIdx];
+
+    const [locked, setLocked] = useState(false);
+
+    useEffect(() => {
+        document.addEventListener('visibilitychange', () => {
+            document.visibilityState !== 'visible' && setLocked(true);
+        })
+    }, []);
 
     return (
         <div className={"bg-white flex w-full h-full flex-col"}>
@@ -257,28 +266,35 @@ export default function ManagePage() {
             <div className={`${color.bgLight} flex flex-col flex-shrink-0`}>
                 <button
                     className={`rounded-2xl text-xs mr-4 mt-2 px-2.5 py-1 ml-auto ${color.bgDark} ${color.textLight}`}
-                    onClick={() => {
-                        updateFirebase(async jwt => setNumFCM((await getNumFCM(jwt))!));
-                        setNotifPopup(true);
-                    }}>Send Notification
+                    onClick={() => setLocked(!locked)}>
+                    {locked ?
+                        <IoLockClosedOutline className={"inline -translate-y-[10%]"} />
+                        : <IoLockOpenOutline className={"inline -translate-y-[10%]"} />
+                    }
+                    &nbsp;{locked ? "Locked" : "Unlocked"}
                 </button>
                 <div className={"mx-5"}>
                     <p className={"text-xs mt-2 text-left font-semiheavy text-gray-400"}>Currently Performing</p>
                     <p className={"text-2xl mt-1 text-gray-800 line-clamp-1 font-semiheavy text-left"}>{currentPerformer.name}</p>
                     <p className={"text-xs mt-3 text-gray-400 font-semiheavy line-clamp-2 text-ellipsis text-left"}>{currentPerformer.artists ? `Performed by ${currentPerformer.artists.join(", ")}` : ' '}</p>
                 </div>
-                <div className={"mx-3 mt-6 mb-4 flex text-xs justify-evenly"}>
-                    <button className={`px-6 py-2 rounded-lg ${color.bg} ${color.textLight}`}
-                            onClick={() => updateFirebase(jwt => setCurrentPerformer(jwt, stage, Math.min(data[stage].performers.length - 1, currentIdx + 1)))}>Next
-                        Performer
-                    </button>
-                    <button className={`px-4 py-2 rounded-lg ${color.border} ${color.text}`}
-                            onClick={() => updateFirebase(jwt => setCurrentPerformer(jwt, stage, Math.max(0, currentIdx - 1)))}>Previous
-                    </button>
-                    <button className={`px-6 py-2 rounded-lg ${color.border} ${color.text}`}
-                            onClick={() => updateFirebase(jwt => setCurrentPerformer(jwt, stage, 0))}>Reset
-                    </button>
-                </div>
+                <Disableable disabled={locked}>
+                    <div className={"mx-3 mt-6 mb-4 flex text-xs justify-evenly"}>
+                        <button disabled={locked} className={`px-6 py-2 rounded-lg ${color.bg} ${color.textLight}`}
+                                onClick={() => updateFirebase(jwt => setCurrentPerformer(jwt, stage, Math.min(data[stage].performers.length - 1, currentIdx + 1)))}>Next
+                            Performer
+                        </button>
+                        <button disabled={locked} className={`px-4 py-2 rounded-lg ${color.border} ${color.text}`}
+                                onClick={() => updateFirebase(jwt => setCurrentPerformer(jwt, stage, Math.max(0, currentIdx - 1)))}>Previous
+                        </button>
+                        <button disabled={locked} className={`px-6 py-2 rounded-lg ${color.border} ${color.text}`}
+                                onClick={() => {
+                                    updateFirebase(async jwt => setNumFCM((await getNumFCM(jwt))!), false);
+                                    setNotifPopup(true);
+                                }}>Notify
+                        </button>
+                    </div>
+                </Disableable>
             </div>
 
             <Popup title={"Edit Performance"} open={editingPerformer != -1} colorScheme={color}
@@ -332,21 +348,25 @@ export default function ManagePage() {
                                 <p className={"text-gray-600 text-xs text-ellipsis overflow-hidden"}>{p.artists ? p.artists.join(',') : " "}</p>
                             </div>
                             <p ref={el => currentChips.current[i] = el}
-                               className={`${color.bg} ${color.textLight} my-auto text-xs h-fit rounded-sm font-semiheavy ${i != currentIdx ? 'w-0' : 'px-2 py-0.5 mr-1.5'}`}>Current</p>
-                            <button
-                                className={"bg-gray-100 text-gray-700 h-fit my-auto py-0.5 px-2 rounded-sm mr-3.5 font-semiheavy text-xs"}
-                                onClick={() => setEditingPerformer(i)}>Edit
-                            </button>
-                            <div
-                                className={"text-gray-400 py-0.5 touch-none rounded-xs text-sm flex-shrink-0 bg-gray-200 my-auto"}
-                                onTouchMove={(evt) => drag(i, evt)}
-                                onMouseMove={(evt) => drag(i, undefined, evt)}
-                                onTouchStart={(evt) => startDrag(i, evt)}
-                                onMouseDown={(evt) => startDrag(i, undefined, evt)}
-                                onTouchEnd={stopDrag}
-                                onMouseUp={stopDrag}>
-                                <RiDraggable/>
-                            </div>
+                               className={`${color.bg} ${color.textLight} my-auto text-xs h-fit rounded-sm font-semiheavy ${i != currentIdx ? 'hidden' : 'px-2 py-0.5 mr-1.5'}`}>Current</p>
+                            <Disableable disabled={locked} className={"my-auto"}>
+                                <button disabled={locked}
+                                    className={"bg-gray-100 text-gray-700 h-fit py-0.5 px-2 rounded-sm mr-3.5 font-semiheavy text-xs"}
+                                    onClick={() => setEditingPerformer(i)}>Edit
+                                </button>
+                            </Disableable>
+                            <Disableable disabled={locked} className={"my-auto"}>
+                                <div
+                                    className={"text-gray-400 py-0.5 touch-none rounded-xs text-sm flex-shrink-0 bg-gray-200 my-auto"}
+                                    onTouchMove={(evt) => !locked && drag(i, evt)}
+                                    onMouseMove={(evt) => !locked && drag(i, undefined, evt)}
+                                    onTouchStart={(evt) => !locked && startDrag(i, evt)}
+                                    onMouseDown={(evt) => !locked && startDrag(i, undefined, evt)}
+                                    onTouchEnd={stopDrag}
+                                    onMouseUp={stopDrag}>
+                                    <RiDraggable/>
+                                </div>
+                            </Disableable>
                         </div>
                     </div>,
                     <div key={"spacer" + i} className={"w-full h-px bg-gray-200"}/>
