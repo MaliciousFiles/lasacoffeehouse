@@ -199,7 +199,7 @@ export default function ManagePage() {
 
     const currentPerformer = data[stage].performers[currentIdx];
 
-    const [locked, setLocked] = useState(false);
+    const [locked, setLocked] = useState(true);
 
     useEffect(() => {
         document.addEventListener('visibilitychange', () => {
