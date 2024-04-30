@@ -21,7 +21,7 @@ export default function SizeCheck(props: {children: React.ReactNode | React.Reac
             <div className={"w-full h-full"} hidden={dimensions.w > 600}>
                 {props.children}
             </div>
-            <p>{dimensions.w <= 600 ? "" : dimensions.h > 400 ?
+            <p>{dimensions.w <= 600 ? "" : dimensions.h > 600 ?
                 "This website was developed for mobile. For the proper viewing experience, open on a mobile phone." :
                 "This website was developed for landscape mode. For the proper viewing experience, rotate your device."}</p>
         </>
