@@ -21,32 +21,34 @@ export default function MainPage() {
 
     // init notif service and load data from localStorage
     useEffect(() => {
-        const messaging = getMessaging(firebase);
-        const database = getDatabase(firebase);
+        if (navigator.serviceWorker) {
+            const messaging = getMessaging(firebase);
+            const database = getDatabase(firebase);
 
-        // noinspection SpellCheckingInspection
-        getToken(messaging, {vapidKey: "BKTiO6q1fNuQyg35h5_2PAzJhCktM0hur4llEn1gIB5Dlf6oCRCD5RIA4OY6BJvdR1UifBM22hAcKwVMc-OSUnc"})
-            .then(token => {
-                if (token) {
-                    const updateLastUsed = () => set(ref(database, `/fcm/${token}/last_used`), Date.now());
-                    document.addEventListener('visibilitychange', () => {
-                        document.visibilityState === 'visible' && updateLastUsed();
-                    })
-                    updateLastUsed();
+            // noinspection SpellCheckingInspection
+            getToken(messaging, {vapidKey: "BKTiO6q1fNuQyg35h5_2PAzJhCktM0hur4llEn1gIB5Dlf6oCRCD5RIA4OY6BJvdR1UifBM22hAcKwVMc-OSUnc"})
+                .then(token => {
+                    if (token) {
+                        const updateLastUsed = () => set(ref(database, `/fcm/${token}/last_used`), Date.now());
+                        document.addEventListener('visibilitychange', () => {
+                            document.visibilityState === 'visible' && updateLastUsed();
+                        })
+                        updateLastUsed();
 
-                    setFbToken(token);
+                        setFbToken(token);
 
 
-                }
-            })
-
-        // just let the SW handle it
-        onMessage(messaging, (payload) => {
-            navigator.serviceWorker.getRegistration("/firebase-cloud-messaging-push-scope")
-                .then(registration => {
-                    registration?.active?.postMessage(payload)
+                    }
                 })
-        });
+
+            // just let the SW handle it
+            onMessage(messaging, (payload) => {
+                navigator.serviceWorker.getRegistration("/firebase-cloud-messaging-push-scope")
+                    .then(registration => {
+                        registration?.active?.postMessage(payload)
+                    })
+            });
+        }
 
         // load stored notif data
         Object.keys(data).reduce((obj, s) => {
@@ -83,6 +85,8 @@ export default function MainPage() {
     const color = getColorScheme(selectedStage);
 
     const backgroundRef = useRef<HTMLDivElement>(null);
+
+    const [expanded, setExpanded] = useState(-1);
 
     const image = performers[currentPerformer]?.image;
     useEffect(() => {
@@ -121,9 +125,18 @@ export default function MainPage() {
                         <div className={"h-full"}>
                             {(cohort == -1 ? performers.slice(0, currentPerformer - 1).reverse() : performers.slice(currentPerformer + 2))
                                 .map((p, i) =>
-                                    <div key={"performer" + p.name} className={"h-10 w-full flex justify-between"}>
-                                        <PerformerText performer={p} first={i == 0} />
-                                        {cohort == 1 ? <button onClick={() => {
+                                    <div
+                                        key={"performer" + p.name}
+                                        className={`${i != expanded ? "max-h-10 h-10" : "max-h-32"} min-h-[2.5rem] w-full flex transition-[max-height] justify-between`}
+                                        onClick={() => setExpanded(i == expanded ? -1 : i)}
+                                    >
+                                        <PerformerText expanded={i == expanded} performer={p} first={i == 0} />
+                                        {cohort == 1 ? <button onClick={async () => {
+                                            if (await Notification.requestPermission() != 'granted') {
+                                                alert("Notifications have been explicitly denied. Enable them in system settings to continue.");
+                                                return;
+                                            }
+
                                             const {uid} = p;
 
                                             if (notifs[stage]?.includes(uid)) {

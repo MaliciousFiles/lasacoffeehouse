@@ -13,20 +13,11 @@ export enum Flow {
 
 export default function Onboarding(props: {flow: Flow, children: ReactNode | ReactNode[]}) {
     const [pwa, setPWA] = useState(false);
-    const [iOS, setIOS] = useState(true);
 
-    const [notif, setNotif] = useState(props.flow != Flow.MAIN ? 'granted' : typeof(Notification) === 'undefined' ? 'default' :  Notification.permission);
 
     useEffect(() => {
         setPWA(window.matchMedia('(display-mode: standalone)').matches);
-        setIOS(/iPad|iPhone|iPod/.test(navigator.platform));
-
-        navigator.permissions.query({name:'notifications'}).then(function(perm) {
-            perm.onchange = () => {
-                setNotif(Notification.permission);
-            };
-        });
-    }, []);
+        }, []);
 
     const auth = getAuth(firebase);
     const [loggedIn, setLoggedIn] = useState(props.flow != Flow.MANAGE || auth.currentUser !== null);
@@ -37,7 +28,7 @@ export default function Onboarding(props: {flow: Flow, children: ReactNode | Rea
     }
 
     let inner = undefined;
-    if (iOS && !pwa) {
+    if (process.env.NODE_ENV !== 'development' && !pwa) {
         inner = (
             <div className={"mb-5 mt-1.5"}>
                 <p className={"text-xl mb-4"}>Add to Home Screen</p>
@@ -52,30 +43,6 @@ export default function Onboarding(props: {flow: Flow, children: ReactNode | Rea
                 </p>
                 <p className={"mx-4 mt-3"}>Tap Share, and then &quot;Add to Home Screen&quot; (Safari pictured
                     above).</p>
-            </div>
-        );
-    } else if (notif !== 'granted') {
-        inner = (
-            <div className={"mb-6 mt-1.5"}>
-                <p className={"text-xl mb-6"}>Stay Up to Date</p>
-                {/*<Image className="drop-shadow-lg mx-auto -my-4" width={105} height={0}*/}
-                {/*       src="/images/notifs.png" alt="Notifications"/>,*/}
-                <button
-                    className="inline-block text-white bg-blue-600 w-fit mx-auto px-4 py-2 rounded-xl"
-                    onClick={() => {
-                        Notification.requestPermission().then(setNotif);
-                    }}>
-                    {notif === 'denied'
-                        ? 'Continue to App'
-                        : 'Enable Notifications'
-                    }
-                </button>
-                <p className="mx-4 mt-6">
-                    {notif === 'denied'
-                        ? 'Notification permissions have been explicitly denied. Enable them in Settings to continue.'
-                        : 'To be notified of upcoming performances, grant notification permissions.'
-                    }
-                </p>
             </div>
         );
     } else if (!loggedIn) {

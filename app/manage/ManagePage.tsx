@@ -20,6 +20,7 @@ import Popup, {InputList} from "@/app/util/Popup";
 import {getColorScheme, parseArtists} from "@/app/util/util";
 import StageSelector from "@/app/util/StageSelector";
 import {TokenMessage} from "firebase-admin/messaging";
+import {MoonLoader, PulseLoader, ScaleLoader, SyncLoader} from "react-spinners";
 
 export default function ManagePage() {
     const data = useContext(FirebaseContext);
@@ -29,18 +30,17 @@ export default function ManagePage() {
     const withoutImage = (p: Performer) => {return {...p, image: undefined}};
 
     useEffect(() => {
-        // the user did something, therefore update clients with new data
-        if (firebaseLoading) {
-            let current = data[stage].currentPerformer;
-            let performers = data[stage].performers;
+        const activePerformers = data[stage].performers.slice(currentIdx, currentIdx+2).map(withoutImage);
 
-            updateFirebase(jwt => updateClients(jwt, stage, withoutImage(performers[current]), withoutImage(performers[current+1])), false);
+        // the user did something, therefore update clients with new data
+        if (JSON.stringify(oldActivePerformers) != JSON.stringify(activePerformers.map(p => p.uid))) {
+            updateFirebase(jwt => updateClients(jwt, stage, activePerformers[0], activePerformers[1]), false);
         } else {
             // since they didn't update it, visual scroll
             scroll(true);
         }
 
-        setFirebaseLoading(false);
+        setOldActivePerformers(activePerformers.map(p => p.uid));
     }, [data]);
 
     const updateFirebase = (func: (jwt: string)=>(Promise<void>|Promise<TokenMessage[][]>), fromUser: boolean = true) => {
@@ -48,11 +48,15 @@ export default function ManagePage() {
 
         getAuth(firebase).currentUser?.getIdToken().then(jwt=>func(jwt).then(messages =>
             messages && messages.forEach(b=>sendMessageBatch(jwt, b))
-        ));
+        )).finally(() => setFirebaseLoading(false));
     }
 
     const [selectedStage, setStage] = useState(0);
     const stage = Object.keys(data)[selectedStage];
+
+    let currentIdx = data[stage].currentPerformer;
+
+    const [oldActivePerformers, setOldActivePerformers] = useState(data[stage].performers.slice(currentIdx, currentIdx+2).map(p => p.uid));
 
     const [dragging, setDragging] = useState(-1);
     const performersContainer = useRef<HTMLDivElement>(null);
@@ -65,6 +69,9 @@ export default function ManagePage() {
     const movePerformer = (parent: HTMLElement, idx: number, direction: 1 | -1) => {
         let pos = performerPositions.current[idx]
         let idx2 = performerPositions.current.indexOf(pos + direction);
+
+        if (pos == currentIdx) currentIdx += direction;
+        else if (pos + direction == currentIdx) currentIdx -= direction;
 
         const marker = document.createElement("div");
         const child1 = parent.childNodes[pos * 2];
@@ -79,7 +86,7 @@ export default function ManagePage() {
         performerPositions.current[idx2] -= direction;
 
         for (let i = 0; i < currentChips.current.length; i++) {
-            currentChips.current[i]?.classList.toggle("invisible", performerPositions.current[i] != data[stage].currentPerformer);
+            currentChips.current[i]?.classList.toggle("invisible", performerPositions.current[i] != currentIdx);
         }
     }
 
@@ -155,7 +162,12 @@ export default function ManagePage() {
             const performers = performerPositions.current
                 .reduce((arr, performer, idx) => {arr[performer] = idx; return arr;}, [] as number[]) // invert
                 .map(i => data[stage].performers[i]);
-            updateFirebase(jwt => updatePerformers(jwt, stage, performers.map(withoutImage)));
+
+            updateFirebase(async (jwt) => {
+                await updatePerformers(jwt, stage, performers.map(withoutImage));
+                console.log("done");
+                await setCurrentPerformer(jwt, stage, currentIdx);
+            });
             setDragging(-1);
         }
 
@@ -167,7 +179,7 @@ export default function ManagePage() {
 
     const scroll = (ifNeeded: boolean) => {
         let child;
-        if (!(child=performersContainer.current?.childNodes[data[stage].currentPerformer*2])) return;
+        if (!(child=performersContainer.current?.childNodes[currentIdx*2])) return;
 
         scrollIntoView(child as Element, {
             behavior: 'smooth',
@@ -184,13 +196,26 @@ export default function ManagePage() {
 
     const [editingPerformer, setEditingPerformer] = useState(-1);
 
-    const currentPerformer = data[stage].performers[data[stage].currentPerformer];
+    const currentPerformer = data[stage].performers[currentIdx];
 
     return (
         <div className={"bg-white flex w-full h-full flex-col"}>
+            {firebaseLoading && (
+                <div>
+                    <div className={"absolute w-full h-full bg-black opacity-40"}>
+                    </div>
+                    <div className={"z-50 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"}>
+                        <ScaleLoader speedMultiplier={0.8} loading={true} height={50} width={15} radius={5}
+                                     color={"#ffffff"}/>
+                    </div>
+                </div>
+            )}
+
             <div className={"flex justify-between flex-shrink-0 px-3 py-2"}>
                 <p className={"text-sm my-auto text-gray-800 font-semiheavy mx-0"}>Manager Hub</p>
-                <button className={"bg-gray-100 rounded-2xl text-xs text-gray-600 px-3 py-1"} onClick={()=>getAuth(firebase).updateCurrentUser(null)}>Log Out</button>
+                <button className={"bg-gray-100 rounded-2xl text-xs text-gray-600 px-3 py-1"}
+                        onClick={() => getAuth(firebase).updateCurrentUser(null)}>Log Out
+                </button>
             </div>
 
             <Popup title={"Send Notification"} open={notifPopup} colorScheme={color}
@@ -202,11 +227,13 @@ export default function ManagePage() {
                    }}>
                 <div className={"mx-5 mt-3 flex flex-col"}>
                     <p className={"text-sm text-left"}>Notification Title</p>
-                    <input autoCorrect={'on'} alt={"title"} className={"border text-xs border-gray-200 rounded-md py-2 px-3"} />
+                    <input autoCorrect={'on'} alt={"title"}
+                           className={"border text-xs border-gray-200 rounded-md py-2 px-3"}/>
                 </div>
                 <div className={"mx-5 mt-3 mb-6 flex flex-col"}>
                     <p className={"text-sm text-left"}>Notification Body</p>
-                    <input autoCorrect={'on'} alt={"body"} className={"border text-xs border-gray-200 rounded-md py-2 px-3"} />
+                    <input autoCorrect={'on'} alt={"body"}
+                           className={"border text-xs border-gray-200 rounded-md py-2 px-3"}/>
                 </div>
             </Popup>
             <Popup title={"Confirm Notification"} open={numFCM != -1 && notifConfirm != undefined} colorScheme={color}
@@ -218,7 +245,8 @@ export default function ManagePage() {
 
                 <p className={"mx-6 mb-5"}>Are you sure you want to notify <b>{numFCM}</b> people?</p>
                 <div className={"mx-5 h-16 mb-6 rounded-xl border border-gray-400 flex"}>
-                    <img src={'/images/logo.svg'} alt={'Logo'} className={"p-2 flex-shrink-0 h-full w-auto rounded-lg"} />
+                    <img src={'/images/logo.svg'} alt={'Logo'}
+                         className={"p-2 flex-shrink-0 h-full w-auto rounded-lg"}/>
                     <div className={"mt-1.5 text-left overflow-hidden"}>
                         <p className={"font-semiheavy text-sm line-clamp-1 text-ellipsis"}>{notifConfirm?.title}</p>
                         <p className={"text-xs line-clamp-2 text-ellipsis"}>{notifConfirm?.body}</p>
@@ -227,11 +255,13 @@ export default function ManagePage() {
             </Popup>
 
             <div className={`${color.bgLight} flex flex-col flex-shrink-0`}>
-                <button className={`rounded-2xl text-xs mr-4 mt-2 px-2.5 py-1 ml-auto ${color.bgDark} ${color.textLight}`}
-                        onClick={() => {
-                            updateFirebase(async jwt => setNumFCM((await getNumFCM(jwt))!));
-                            setNotifPopup(true);
-                        }}>Send Notification</button>
+                <button
+                    className={`rounded-2xl text-xs mr-4 mt-2 px-2.5 py-1 ml-auto ${color.bgDark} ${color.textLight}`}
+                    onClick={() => {
+                        updateFirebase(async jwt => setNumFCM((await getNumFCM(jwt))!));
+                        setNotifPopup(true);
+                    }}>Send Notification
+                </button>
                 <div className={"mx-5"}>
                     <p className={"text-xs mt-2 text-left font-semiheavy text-gray-400"}>Currently Performing</p>
                     <p className={"text-2xl mt-1 text-gray-800 line-clamp-1 font-semiheavy text-left"}>{currentPerformer.name}</p>
@@ -239,11 +269,15 @@ export default function ManagePage() {
                 </div>
                 <div className={"mx-3 mt-6 mb-4 flex text-xs justify-evenly"}>
                     <button className={`px-6 py-2 rounded-lg ${color.bg} ${color.textLight}`}
-                            onClick={() => updateFirebase(jwt => setCurrentPerformer(jwt, stage, Math.min(data[stage].performers.length-1, data[stage].currentPerformer+1)))}>Next Performer</button>
+                            onClick={() => updateFirebase(jwt => setCurrentPerformer(jwt, stage, Math.min(data[stage].performers.length - 1, currentIdx + 1)))}>Next
+                        Performer
+                    </button>
                     <button className={`px-4 py-2 rounded-lg ${color.border} ${color.text}`}
-                            onClick={() => updateFirebase(jwt => setCurrentPerformer(jwt, stage, Math.max(0, data[stage].currentPerformer-1)))}>Previous</button>
+                            onClick={() => updateFirebase(jwt => setCurrentPerformer(jwt, stage, Math.max(0, currentIdx - 1)))}>Previous
+                    </button>
                     <button className={`px-6 py-2 rounded-lg ${color.border} ${color.text}`}
-                            onClick={() => updateFirebase(jwt => setCurrentPerformer(jwt, stage, 0))}>Reset</button>
+                            onClick={() => updateFirebase(jwt => setCurrentPerformer(jwt, stage, 0))}>Reset
+                    </button>
                 </div>
             </div>
 
@@ -261,11 +295,12 @@ export default function ManagePage() {
                    }}>
                 <div className={"mx-5 mt-1.5 flex flex-col"}>
                     <p className={"text-sm text-left"}>Name</p>
-                    <input alt="name" className={"border text-xs border-gray-200 rounded-md py-2 px-3"} />
+                    <input alt="name" className={"border text-xs border-gray-200 rounded-md py-2 px-3"}/>
                 </div>
                 <div className={"mx-5 mt-3 flex flex-col"}>
                     <p className={"text-sm text-left"}>Artists</p>
-                    <input alt="artists" placeholder={"Comma, Separated, Names"} className={"border text-xs border-gray-200 rounded-md py-2 px-3"} />
+                    <input alt="artists" placeholder={"Comma, Separated, Names"}
+                           className={"border text-xs border-gray-200 rounded-md py-2 px-3"}/>
                 </div>
                 <div className={"mx-5 mt-3.5 mb-6 text-left flex"}>
                     <button className={"rounded-md bg-blue-400 text-blue-100 font-semiheavy px-1.5 py-1 text-xs"}
@@ -290,29 +325,35 @@ export default function ManagePage() {
                 {([] as any[]).concat(...data[stage].performers.map((p, i) => [
                     <div key={"performer" + p.uid}>
                         {i == dragging && <div><p>&nbsp;</p><p className={"text-xs py-2"}>&nbsp;</p></div>}
-                        <div className={"row px-6 py-2 flex"+(i == dragging ? " fixed rounded-s shadow-2xl w-full bg-white" : "")}>
+                        <div
+                            className={"row pr-7 pl-5 py-2 flex" + (i == dragging ? " fixed rounded-s shadow-2xl w-full bg-white" : "")}>
                             <div className={`flex flex-col text-left flex-grow overflow-hidden whitespace-nowrap pr-1`}>
                                 <p className={"text-gray-800 font-semiheavy text-ellipsis overflow-hidden"}>{p.name}</p>
                                 <p className={"text-gray-600 text-xs text-ellipsis overflow-hidden"}>{p.artists ? p.artists.join(',') : " "}</p>
                             </div>
-                            <p ref={el => currentChips.current[i] = el} className={`${color.bg} ${color.textLight} my-auto text-xs h-fit rounded-sm font-semiheavy ${i != data[stage].currentPerformer ? 'w-0' : 'px-2 py-0.5 mr-1.5'}`}>Current</p>
-                            <button className={"bg-gray-100 text-gray-700 h-fit my-auto py-0.5 px-2 rounded-sm mr-1.5 font-semiheavy text-xs"}
-                                    onClick={() => setEditingPerformer(i)}>Edit</button>
-                            <div className={"text-gray-400 py-0.5 touch-none rounded-xs text-sm flex-shrink-0 bg-gray-200 my-auto"}
-                                 onTouchMove={(evt) => drag(i, evt)}
-                                 onMouseMove={(evt) => drag(i, undefined, evt)}
-                                 onTouchStart={(evt) => startDrag(i, evt)}
-                                 onMouseDown={(evt) => startDrag(i, undefined, evt)}
-                                 onTouchEnd={stopDrag}
-                                 onMouseUp={stopDrag}>
-                                <RiDraggable />
+                            <p ref={el => currentChips.current[i] = el}
+                               className={`${color.bg} ${color.textLight} my-auto text-xs h-fit rounded-sm font-semiheavy ${i != currentIdx ? 'w-0' : 'px-2 py-0.5 mr-1.5'}`}>Current</p>
+                            <button
+                                className={"bg-gray-100 text-gray-700 h-fit my-auto py-0.5 px-2 rounded-sm mr-3.5 font-semiheavy text-xs"}
+                                onClick={() => setEditingPerformer(i)}>Edit
+                            </button>
+                            <div
+                                className={"text-gray-400 py-0.5 touch-none rounded-xs text-sm flex-shrink-0 bg-gray-200 my-auto"}
+                                onTouchMove={(evt) => drag(i, evt)}
+                                onMouseMove={(evt) => drag(i, undefined, evt)}
+                                onTouchStart={(evt) => startDrag(i, evt)}
+                                onMouseDown={(evt) => startDrag(i, undefined, evt)}
+                                onTouchEnd={stopDrag}
+                                onMouseUp={stopDrag}>
+                                <RiDraggable/>
                             </div>
                         </div>
                     </div>,
-                    <div key={"spacer"+i} className={"w-full h-px bg-gray-200"} />
+                    <div key={"spacer" + i} className={"w-full h-px bg-gray-200"}/>
                 ])).slice(0, -1)}
             </div>
-            <StageSelector stages={Object.keys(data)} selected={selectedStage} setSelected={setStage} className={"h-[4.5rem]"} />
+            <StageSelector stages={Object.keys(data)} selected={selectedStage} setSelected={setStage}
+                           className={"h-[4.5rem]"}/>
         </div>
     )
 }
