@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import React, {ReactNode, useEffect, useState} from "react";
+import React, {ReactNode, useEffect, useMemo, useRef, useState} from "react";
 import {getAuth} from "@firebase/auth";
 import firebase from "@/app/util/firebase/init";
 import SignIn from "@/app/onboarding/SignIn";
@@ -12,12 +12,17 @@ export enum Flow {
 }
 
 export default function Onboarding(props: {flow: Flow, children: ReactNode | ReactNode[]}) {
-    const [pwa, setPWA] = useState(false);
-
+    const [pwa, setPWA] = useState(true);
+    const [pwaUrl, setPWAUrl] = useState("/");
 
     useEffect(() => {
-        setPWA(window.matchMedia('(display-mode: standalone)').matches);
-        }, []);
+        setPWA(process.env.NODE_ENV === 'development' || window.matchMedia('(display-mode: standalone)').matches);
+
+        const ios = /iPad|iPhone|iPod|Mac/.test(navigator.platform);
+        const chrome = /(?:chrome|crios)\/(\d+)/.test(navigator.userAgent.toLowerCase());
+
+        setPWAUrl(`/images/add_pwa/${ios ? "ios" : "android"}_${chrome ? "chrome" : "safari"}`);
+    }, []);
 
     const auth = getAuth(firebase);
     const [loggedIn, setLoggedIn] = useState(props.flow != Flow.MANAGE || auth.currentUser !== null);
@@ -27,22 +32,21 @@ export default function Onboarding(props: {flow: Flow, children: ReactNode | Rea
         });
     }
 
-    let inner = undefined;
-    if (process.env.NODE_ENV !== 'development' && !pwa) {
+    let inner;
+    if (!pwa) {
         inner = (
             <div className={"mb-5 mt-1.5"}>
                 <p className={"text-xl mb-4"}>Add to Home Screen</p>
                 <Image className="drop-shadow-lg mx-auto" width={200} height={0}
-                       src="/images/share_button.jpeg" alt="Share button"/>
-                <Image className="drop-shadow-lg mx-auto mt-4" src="/images/add_pwa.jpeg"
+                       src={`${pwaUrl}_1.jpg`} alt="Share button"/>
+                <Image className="drop-shadow-lg mx-auto mt-4" src={`${pwaUrl}_2.jpg`}
                        width={150}
                        height={0} alt="Add to home screen"/>
                 <p className="mx-4 mt-6">
                     {props.flow === Flow.MAIN && "To enable notifications, install this website as a Progressive Web App."}
                     {props.flow === Flow.MANAGE && "For the proper viewing experience, install this website as a Progressive Web App."}
                 </p>
-                <p className={"mx-4 mt-3"}>Tap Share, and then &quot;Add to Home Screen&quot; (Safari pictured
-                    above).</p>
+                <p className={"mx-4 mt-3"}>{`Tap Share, and then "Add to Home Screen" (${pwaUrl.includes("safari") ? "Safari" : "Chrome"} pictured above).`}</p>
             </div>
         );
     } else if (!loggedIn) {

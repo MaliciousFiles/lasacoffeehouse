@@ -60,7 +60,7 @@ export default function MainPage() {
             return obj;
         }, notifs);
 
-        if (Notification.permission == 'granted') initMessaging();
+        if (window.Notification?.permission == 'granted') initMessaging();
     }, []);
 
     // sync to FB and localStorage every time `notifs` is updated
@@ -137,8 +137,10 @@ export default function MainPage() {
                                         onClick={() => setExpanded(i == expanded ? -1 : i)}
                                     >
                                         <PerformerText expanded={i == expanded} performer={p} first={i == 0} />
-                                        {cohort == 1 ? <button onClick={async () => {
-                                            if (await Notification.requestPermission() != 'granted') {
+                                        {cohort == 1 ? <button onClick={async (e) => {
+                                            e.stopPropagation()
+
+                                            if (await window.Notification?.requestPermission() != 'granted') {
                                                 alert("Notifications have been explicitly denied. Enable them in system settings to continue.");
                                                 return;
                                             }
