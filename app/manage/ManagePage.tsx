@@ -201,9 +201,14 @@ export default function ManagePage() {
 
     const [locked, setLocked] = useState(true);
 
+    const inactivityTimeout = useRef<NodeJS.Timeout>();
     useEffect(() => {
         document.addEventListener('visibilitychange', () => {
             document.visibilityState !== 'visible' && setLocked(true);
+        })
+        document.addEventListener('touchstart', () => {
+            inactivityTimeout.current && clearTimeout(inactivityTimeout.current);
+            inactivityTimeout.current = setTimeout(() => setLocked(true), 15 * 1000);
         })
     }, []);
 
