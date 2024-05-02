@@ -1,6 +1,6 @@
 "use client";
 
-import React, {useContext, useEffect, useRef, useState} from "react";
+import React, {useContext, useEffect, useMemo, useRef, useState} from "react";
 import {getDatabase, ref, set} from "@firebase/database";
 import firebase from "@/app/util/firebase/init";
 import {getMessaging, getToken, onMessage} from "@firebase/messaging";
@@ -19,42 +19,48 @@ export default function MainPage() {
     // notifs are special because they're synced to local storage, not FB
     const [notifs, setNotifs] = useState<{[i: string]: string[]}>({});
 
+    const [messagingSetup, setMessagingSetup] = useState(false);
+    const initMessaging = () => {
+        if (messagingSetup) return;
+        setMessagingSetup(true);
+
+        const messaging = getMessaging(firebase);
+        const database = getDatabase(firebase);
+
+        // noinspection SpellCheckingInspection
+        getToken(messaging, {vapidKey: "BKTiO6q1fNuQyg35h5_2PAzJhCktM0hur4llEn1gIB5Dlf6oCRCD5RIA4OY6BJvdR1UifBM22hAcKwVMc-OSUnc"})
+            .then(token => {
+                if (token) {
+                    const updateLastUsed = () => set(ref(database, `/fcm/${token}/last_used`), Date.now());
+                    document.addEventListener('visibilitychange', () => {
+                        document.visibilityState === 'visible' && updateLastUsed();
+                    })
+                    updateLastUsed();
+
+                    setFbToken(token);
+
+
+                }
+            })
+
+        // just let the SW handle it
+        onMessage(messaging, (payload) => {
+            navigator.serviceWorker.getRegistration("/firebase-cloud-messaging-push-scope")
+                .then(registration => {
+                    registration?.active?.postMessage(payload)
+                })
+        });
+    };
+
     // init notif service and load data from localStorage
     useEffect(() => {
-        if (navigator.serviceWorker) {
-            const messaging = getMessaging(firebase);
-            const database = getDatabase(firebase);
-
-            // noinspection SpellCheckingInspection
-            getToken(messaging, {vapidKey: "BKTiO6q1fNuQyg35h5_2PAzJhCktM0hur4llEn1gIB5Dlf6oCRCD5RIA4OY6BJvdR1UifBM22hAcKwVMc-OSUnc"})
-                .then(token => {
-                    if (token) {
-                        const updateLastUsed = () => set(ref(database, `/fcm/${token}/last_used`), Date.now());
-                        document.addEventListener('visibilitychange', () => {
-                            document.visibilityState === 'visible' && updateLastUsed();
-                        })
-                        updateLastUsed();
-
-                        setFbToken(token);
-
-
-                    }
-                })
-
-            // just let the SW handle it
-            onMessage(messaging, (payload) => {
-                navigator.serviceWorker.getRegistration("/firebase-cloud-messaging-push-scope")
-                    .then(registration => {
-                        registration?.active?.postMessage(payload)
-                    })
-            });
-        }
-
         // load stored notif data
         Object.keys(data).reduce((obj, s) => {
             obj[s] = JSON.parse(localStorage.getItem(`lasacoffeehouse:notifs:${s}`) ?? '[]');
             return obj;
         }, notifs);
+
+        if (Notification.permission == 'granted') initMessaging();
     }, []);
 
     // sync to FB and localStorage every time `notifs` is updated
@@ -136,6 +142,7 @@ export default function MainPage() {
                                                 alert("Notifications have been explicitly denied. Enable them in system settings to continue.");
                                                 return;
                                             }
+                                            initMessaging();
 
                                             const {uid} = p;
 
