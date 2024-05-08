@@ -2,37 +2,38 @@ import {Performer} from "@/app/util/firebase/init";
 import React, {useEffect, useRef} from "react";
 import {setCurrentPerformer} from "@/app/manage/FCMManager";
 
-export default function PerformerText(props: {performer: Performer, first: boolean, expanded: boolean}) {
-    const {performer, first, expanded} = props;
+export default function PerformerText(props: {performer: Performer, expanded: boolean}) {
+    const {performer, expanded} = props;
 
     const containerRef = useRef<HTMLDivElement>(null);
     const byRef = useRef<HTMLParagraphElement>(null);
 
-    useEffect(() => {
-        if (containerRef.current && byRef.current) {
-            const containerSize = containerRef.current.getBoundingClientRect();
-            const byPos = byRef.current.getBoundingClientRect().y;
-            const lowestPos = containerRef.current.lastElementChild!.getBoundingClientRect().y;
-
-            byRef.current.textContent = !expanded && byPos < containerSize.y + containerSize.height/2 ? "  by" : "by";
-
-            first && containerRef.current.parentElement?.parentElement?.classList.toggle("pt-2", lowestPos >= containerSize?.y + containerSize?.height/2);
-        }
-    }, [expanded, first, performer, containerRef, byRef]);
+    // useEffect(() => {
+    //     if (containerRef.current && byRef.current) {
+    //         const containerSize = containerRef.current.getBoundingClientRect();
+    //         const byPos = byRef.current.getBoundingClientRect().y;
+    //         const lowestPos = containerRef.current.lastElementChild!.getBoundingClientRect().y;
+    //
+    //         byRef.current.textContent = !expanded && byPos < containerSize.y + containerSize.height/2 ? "  by" : "by";
+    //
+    //         first && containerRef.current.parentElement?.parentElement?.classList.toggle("pt-2", lowestPos >= containerSize?.y + containerSize?.height/2);
+    //     }
+    // }, [expanded, first, performer, containerRef, byRef]);
 
     return (
-        <div ref={containerRef} className={"pl-4 pr-1 h-full text-left flex-wrap flex overflow-hidden whitespace-nowrap my-auto flex-grow"}>
-            <p className={`${!expanded ? "h-5" : "whitespace-normal break-words"} leading-5 overflow-hidden my-auto text-ellipsis`}>{performer.name}</p>
-
-            {expanded && <div className={"basis-full"}></div>}
+        <div className={`pl-4 pr-1 flex-grow my-auto overflow-hidden text-left`}>
+            <p className={`${!expanded ? "h-5 whitespace-nowrap" : ""} leading-5 overflow-hidden my-auto text-ellipsis`}>{performer.name}</p>
             {performer.artists &&
-                <p ref={byRef} className={`my-auto h-5 leading-5 text-center overflow-hidden whitespace-nowrap text-ellipsis text-xs text-gray-500`}>by</p>}
-            {performer.artists && ([] as any[]).concat(...performer.artists.map((a, i) => [
-                <p key={"artist" + i}
-                   className={"my-auto h-5 leading-5 text-center overflow-hidden inline whitespace-nowrap text-ellipsis text-xs text-gray-500 font-semiheavy"}>&nbsp;{a}</p>,
-                <p key={"c" + i}
-                   className={"my-auto h-5 leading-5 text-center overflow-hidden inline whitespace-nowrap text-ellipsis text-xs text-gray-500 font-light"}>,</p>
-            ])).slice(0, -1)}
+                <p className={`${!expanded ? "h-5 whitespace-nowrap" : ""} leading-5 overflow-hidden my-auto text-xs text-gray-500 text-ellipsis`}>{performer.artists.join(", ")}</p>}
+            {performer.songs &&
+                <div className={`${!expanded ? "h-5 whitespace-nowrap" : ""} leading-5 overflow-hidden my-auto text-xs text-gray-500 text-ellipsis`}>{([] as any[]).concat(...performer.songs.map(s=> [
+                    <p key={s.name+"p3"} className={"inline"}>&quot;</p>,
+                    <p key={s.name+"b1"} className={"inline"}>{s.name}</p>,
+                    <p key={s.name+"p4"} className={"inline"}>&quot;</p>,
+                    !s.original && s.artist && <p key={s.name+"p1"} className={"inline"}>&nbsp;by</p>,
+                    (s.original || s.artist) && <p key={s.name+"b2"} className={"inline"}>&nbsp;{s.original ? "(original)" : s.artist}</p>,
+                    <p key={s.name+"p2"} className={"inline"}>,&nbsp;</p>
+                ])).filter(o=>o).slice(0, -1)}</div>}
         </div>
     )
 }

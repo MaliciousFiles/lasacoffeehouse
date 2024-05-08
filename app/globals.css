@@ -27,7 +27,7 @@ body {
 
 * {
   font-family: "Futura Condensed", sans-serif;
-  font-weight: 200;
+  font-weight: 400; /*200;*/
 
   --navy: rgb(12, 35, 64);
   --light-navy: rgb(8, 53, 115);
