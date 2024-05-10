@@ -106,7 +106,10 @@ export default function MainPage() {
     return (
         <div className={`flex flex-col h-full`} >
             <StageSelector stages={Object.keys(data)} selected={selectedStage} setSelected={setStage} className={"h-14 z-50 bg-white rounded-b-2xl overflow-hidden"} />
-            <div ref={backgroundRef} className={`absolute top-10 w-full h-[37%] bg-[--navy] bg-[url(/images/logo.svg)] bg-[length:auto_40%] bg-no-repeat bg-center`} />
+            <div ref={backgroundRef} style={{
+                backgroundImage: `url(/images/bg_images/${currentPerformer % 6}.jpg)`,
+                backgroundColor: color.imageBackgroundColor(currentPerformer % 6)
+            }} className={`absolute top-10 w-full h-[37%] bg-[length:auto_100%] bg-no-repeat bg-center`} />
             <div className={`h-[35%]`} />
             <div className={"bg-white z-10 h-[65%] rounded-t-3xl flex flex-col overflow-hidden"}>
                 <div
