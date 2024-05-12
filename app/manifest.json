@@ -28,7 +28,7 @@
       "type": "image/png"
     },
     {
-      "src": "/images/logo.svg",
+      "src": "/icons/vector.svg",
       "sizes": "any",
       "type": "image/svg+xml"
     }
