@@ -94,15 +94,6 @@ export default function MainPage() {
 
     const [expanded, setExpanded] = useState(Object.keys(data).reduce((o: {[i: string]: boolean[]}, s) => {o[s] = data[s].performers.map(_=>false); return o;}, {}));
 
-    const image = performers[currentPerformer]?.image;
-    useEffect(() => {
-        if (!backgroundRef.current) return;
-
-        backgroundRef.current.style.backgroundImage = image ? `url(${image})` : '';
-        backgroundRef.current.style.backgroundSize = image ? 'cover' : ''
-        backgroundRef.current.style.backgroundPosition = image ? 'center top' : ''
-    }, [image, backgroundRef]);
-
     return (
         <div className={`flex flex-col h-full`} >
             <StageSelector stages={Object.keys(data)} selected={selectedStage} setSelected={setStage} className={"h-14 z-50 bg-white rounded-b-2xl overflow-hidden"} />
@@ -174,7 +165,7 @@ export default function MainPage() {
                                                     performed</p>}
                                         </div>,
                                         <div key={"divider" + p.name}
-                                             className={"w-full bg-gray-300 h-[1px] relative z-50"}/>
+                                             className={"w-full bg-gray-300 h-px relative z-50"}/>
                                     ]
                                 })).slice(0, -1)}
                             <div className={"h-[calc(100%-2.75rem)]"}/>
