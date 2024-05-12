@@ -98,8 +98,8 @@ export default function MainPage() {
         <div className={`flex flex-col h-full`} >
             <StageSelector stages={Object.keys(data)} selected={selectedStage} setSelected={setStage} className={"h-14 z-50 bg-white rounded-b-2xl overflow-hidden"} />
             <div ref={backgroundRef} style={{
-                backgroundImage: `url(/images/bg_images/${currentPerformer % 6}.jpg)`,
-                backgroundColor: color.imageBackgroundColor(currentPerformer % 6)
+                backgroundImage: `url(/images/bg_images/${(currentPerformer + selectedStage*3) % 6}.jpg)`,
+                backgroundColor: color.imageBackgroundColor((currentPerformer + selectedStage*3) % 6)
             }} className={`absolute top-10 w-full h-[37%] bg-[length:auto_100%] bg-no-repeat bg-center`} />
             <div className={`h-[35%]`} />
             <div className={"bg-white z-10 h-[65%] rounded-t-3xl flex flex-col overflow-hidden"}>
