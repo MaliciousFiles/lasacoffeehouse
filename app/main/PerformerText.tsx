@@ -5,21 +5,6 @@ import {setCurrentPerformer} from "@/app/manage/FCMManager";
 export default function PerformerText(props: {performer: Performer, expanded: boolean}) {
     const {performer, expanded} = props;
 
-    const containerRef = useRef<HTMLDivElement>(null);
-    const byRef = useRef<HTMLParagraphElement>(null);
-
-    // useEffect(() => {
-    //     if (containerRef.current && byRef.current) {
-    //         const containerSize = containerRef.current.getBoundingClientRect();
-    //         const byPos = byRef.current.getBoundingClientRect().y;
-    //         const lowestPos = containerRef.current.lastElementChild!.getBoundingClientRect().y;
-    //
-    //         byRef.current.textContent = !expanded && byPos < containerSize.y + containerSize.height/2 ? "  by" : "by";
-    //
-    //         first && containerRef.current.parentElement?.parentElement?.classList.toggle("pt-2", lowestPos >= containerSize?.y + containerSize?.height/2);
-    //     }
-    // }, [expanded, first, performer, containerRef, byRef]);
-
     return (
         <div className={`pl-4 pr-1 flex-grow my-auto overflow-hidden text-left`}>
             <p className={`${!expanded ? "h-5 whitespace-nowrap" : ""} leading-5 overflow-hidden my-auto text-ellipsis`}>{performer.name}</p>
