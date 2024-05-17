@@ -23,7 +23,7 @@ export default function SizeCheck(props: {children: React.ReactNode | React.Reac
             </div>
             <p>{dimensions.w <= 600 ? "" : dimensions.h > 600 ?
                 "This website was developed for mobile. For the proper viewing experience, open on a mobile phone." :
-                "This website was developed for landscape mode. For the proper viewing experience, rotate your device."}</p>
+                "This website was developed for portrait mode. For the proper viewing experience, rotate your device."}</p>
         </>
     );
 }
