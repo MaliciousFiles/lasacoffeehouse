@@ -378,7 +378,7 @@ export default function ManagePage() {
                 ])).slice(0, -1)}
             </div>
             <StageSelector stages={Object.keys(data)} selected={selectedStage} setSelected={setStage}
-                           className={"flex-shrink-0 h-12"}/>
+                           className={"flex-shrink-0 h-12 w-full"}/>
         </div>
     )
 }

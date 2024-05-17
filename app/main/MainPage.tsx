@@ -6,7 +6,7 @@ import firebase from "@/app/util/firebase/init";
 import {getMessaging, getToken, onMessage} from "@firebase/messaging";
 import FirebaseContext from "@/app/util/firebase/FirebaseContext";
 import {BiBell, BiBellOff} from "react-icons/bi";
-import {getColorScheme} from "@/app/util/util";
+import {getColorScheme, getSongsDisplay} from "@/app/util/util";
 import StageSelector from "@/app/util/StageSelector";
 import PerformerText from "@/app/main/PerformerText";
 
@@ -95,20 +95,38 @@ export default function MainPage() {
     const [expanded, setExpanded] = useState(Object.keys(data).reduce((o: {[i: string]: boolean[]}, s) => {o[s] = data[s].performers.map(_=>false); return o;}, {}));
 
     return (
-        <div className={`flex flex-col h-full`} >
-            <StageSelector stages={Object.keys(data)} selected={selectedStage} setSelected={setStage} className={"h-14 z-50 bg-white rounded-b-2xl overflow-hidden"} />
-            <div ref={backgroundRef} style={{
-                backgroundImage: `url(/images/bg_images/${(currentPerformer + selectedStage*3) % 6}.jpg)`,
-                backgroundColor: color.imageBackgroundColor((currentPerformer + selectedStage*3) % 6)
-            }} className={`absolute top-10 w-full h-[37%] bg-[length:auto_100%] bg-no-repeat bg-center`} />
-            <div className={`h-[35%]`} />
-            <div className={"bg-white z-10 h-[65%] rounded-t-3xl flex flex-col overflow-hidden"}>
-                <div
-                    className={`flex flex-col ${color.performerText} px-4 justify-evenly w-full flex-shrink-0 h-24 py-3 bg-gradient-to-b ${color.performerBg} m-auto`}>
-                    <p className={`text-3xl ${color.performerNameText} text-ellipsis line-clamp-1 leading-7 m-1 font-semiheavy`}>{performers[currentPerformer]?.name}</p>
-                    <p className={"text-sm text-ellipsis line-clamp-1 font-semiheavy"}>{performers[currentPerformer]?.artists && performers[currentPerformer]!.artists.join(", ")}</p>
-                    <p className={"text-sm text-ellipsis line-clamp-1 font-semiheavy"}>{performers[currentPerformer]?.songs && `${performers[currentPerformer]!.songs.map(s => `"${s.name}" ${s.original ? "(original)" : s.artist ? `by ${s.artist}` : ""}`)}`}</p>
+        <div className={`flex flex-col h-full bg-[--navy]`}>
+            <StageSelector stages={Object.keys(data)} selected={selectedStage} setSelected={setStage}
+                           className={"h-11 w-[90%] flex-shrink-0 z-50 mx-auto bg-white mt-5 -mb-5 rounded-full overflow-hidden"}/>
+            <div ref={backgroundRef} className={`min-h-[35%] flex-shrink-0 bg-[--navy]`}>
+                <div className="w-full pt-8 pb-3 px-4">
+                    <div
+                        className={`flex flex-col text-white px-4 justify-evenly w-full flex-shrink-0 py-6 ${color.performerBg}`}>
+                        <p
+                            className={`text-xs uppercase tracking-widest ${color.performerText}`}>
+                            Current Performers
+                        </p>
+                        <p className={"text-3xl text-ellipsis leading-9 my-4 font-bold"}>
+                            {performers[currentPerformer]?.name}
+                        </p>
+                        <p className={`text-s mb-3`} >
+                            {getSongsDisplay(performers[currentPerformer])}
+                        </p>
+                        <p className={`text-xs px-4 ${color.performerText}`}>
+                            {performers[currentPerformer]?.artists &&
+                                `Performed by ${performers[currentPerformer]?.artists.join(", ")}`}
+                        </p>
+                    </div>
                 </div>
+            </div>
+            {/*<div className={`h-[35%]`}/>*/}
+            <div className={"bg-white z-10 flex-grow rounded-t-2xl flex flex-col overflow-hidden"}>
+                {/*<div*/}
+                {/*    className={`flex flex-col ${color.performerText} px-4 justify-evenly w-full flex-shrink-0 h-24 py-3 bg-gradient-to-b ${color.performerBg} m-auto`}>*/}
+                {/*    <p className={`text-3xl ${color.performerNameText} text-ellipsis line-clamp-1 leading-7 m-1 font-semiheavy`}>{performers[currentPerformer]?.name}</p>*/}
+                {/*    <p className={"text-sm text-ellipsis line-clamp-1 font-semiheavy"}>{performers[currentPerformer]?.artists && performers[currentPerformer]!.artists.join(", ")}</p>*/}
+                {/*    <p className={"text-sm text-ellipsis line-clamp-1 font-semiheavy"}>{performers[currentPerformer]?.songs && `${performers[currentPerformer]!.songs.map(s => `"${s.name}" ${s.original ? "(original)" : s.artist ? `by ${s.artist}` : ""}`)}`}</p>*/}
+                {/*</div>*/}
                 <div className={"bg-gray-50 h-16 flex text-left"}>
                     {[-1, 1].map(c => {
                         const p = performers[currentPerformer + c];
@@ -117,14 +135,20 @@ export default function MainPage() {
                                      className={`w-1/2 ${c == cohort ? 'text-gray-800' : 'text-gray-500'} relative overflow-hidden` + (c == cohort ? ` ${color.bgLight}` : "")}>
                                 <p className={"text-xs mt-2 ml-4 mb-0"}>{c == -1 ? "Previous" : "Up Next"}</p>
                                 <p className={`ml-4 mt-1 ${c == -1 && "text-sm"} mb-3 font-semiheavy line-clamp-1 text-ellipsis`}>{p?.name}</p>
-                                {c == cohort && <div className={`${color.bg} w-full absolute bottom-[-1px] rounded h-1`}/>}
+                                {c == cohort &&
+                                    <div className={`${color.bg} w-full absolute bottom-[-1px] rounded h-1`}/>}
                             </div>
-                        )})}
+                        )
+                    })}
                 </div>
                 <div ref={scrollView} className={"flex-grow overflow-auto"}>
-                    {performers[currentPerformer + cohort*2] ?
+                    {performers[currentPerformer + cohort * 2] ?
                         <div className={"h-full"}>
-                            {([] as any[]).concat(...(cohort == -1 ? performers.map((p,i)=>{return {p,i}}).slice(0, currentPerformer - 1).reverse() : performers.map((p,i)=>{return {p,i}}).slice(currentPerformer + 2))
+                            {([] as any[]).concat(...(cohort == -1 ? performers.map((p, i) => {
+                                return {p, i}
+                            }).slice(0, currentPerformer - 1).reverse() : performers.map((p, i) => {
+                                return {p, i}
+                            }).slice(currentPerformer + 2))
                                 .map((performer, idx) => {
                                     const {p, i} = performer
                                     return [

@@ -1,3 +1,5 @@
+import {Performer} from "@/app/util/firebase/init";
+
 export function parseArtists(string: string) {
     return string.split(/, */).map((artist) => artist.trim()).filter(s => s != "");
 }
@@ -14,8 +16,9 @@ export function getColorScheme(stageIdx: number) {
         performerNameText: stageIdx == 0 ? 'text-pink-100' : 'text-emerald-100',
         performerText: stageIdx == 0 ? 'text-pink-200' : 'text-emerald-200',
         performerBg: stageIdx == 0 ? 'from-pink-400 to-pink-600' : 'from-emerald-400 to-emerald-600',
-        imageBackgroundColor: (idx: number) => {
-            return idx == 0 ? '#D0D0D0' : idx == 1 ? '#DFDFDF' : idx == 2 ? '#FFFFFF' : idx == 3 ? '#616161' : idx == 4 ? '#4F4F4F' : '#23173F';
-        }
     };
+}
+
+export function getSongsDisplay(performer: Performer) {
+    return performer.songs.map(s => `"${s.name}"${s.original ? " (original)" : s.artist ? ` by ${s.artist}` : ''}`).join(", ")
 }

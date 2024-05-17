@@ -21,7 +21,7 @@ export default async function RootLayout({
 }) {
     return (
         <html lang="en" className={"w-full h-full"}>
-            <body className={"w-full h-full " + inter.className}>
+            <body className={"w-full h-full " + inter.style.fontFamily}>
                 <SizeCheck>
                     <BaseFirebaseComponent initialData={await (async () => {
                         const data = (await get(ref(getDatabase(firebase), "/data"))).val()
