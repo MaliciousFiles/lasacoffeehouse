@@ -43,8 +43,8 @@ export default function Onboarding(props: {flow: Flow, children: ReactNode | Rea
                        width={150}
                        height={0} alt="Add to home screen"/>
                 <p className="mx-4 mt-6">
-                    {props.flow === Flow.MAIN && "To enable notifications, install this website as a Progressive Web App."}
-                    {props.flow === Flow.MANAGE && "For the proper viewing experience, install this website as a Progressive Web App."}
+                    {props.flow === Flow.MAIN && "To enable notifications, add this website to your home screen."}
+                    {props.flow === Flow.MANAGE && "For the proper viewing experience, add this website to your home screen."}
                 </p>
                 <p className={"mx-4 mt-3"}>{`Tap Share, and then "Add to Home Screen" (${pwaUrl.includes("safari") ? "Safari" : "Chrome"} pictured above).`}</p>
             </div>
