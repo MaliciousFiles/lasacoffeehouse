@@ -16,10 +16,17 @@ export function genUID() {
     return Date.now().toString(36) + Math.random().toString(36).slice(2);
 }
 
+export type Song = {
+    name: string,
+    artist?: string
+    original: boolean
+}
+
 export type Performer = {
     uid: string
     name: string
     artists: string[]
+    songs: Song[]
     image?: string
 }
 

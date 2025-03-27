@@ -10,7 +10,6 @@ import SizeCheck from "@/app/util/SizeCheck";
 export const metadata: Metadata = {
     title: 'LASA Coffeehouse',
     description: 'Performer viewer for Coffeehouse',
-    manifest: '/manifest.webmanifest',
 }
 
 const inter = Inter({ subsets: ['latin'] })
@@ -22,7 +21,7 @@ export default async function RootLayout({
 }) {
     return (
         <html lang="en" className={"w-full h-full"}>
-            <body className={"w-full h-full " + inter.className}>
+            <body className={"w-full h-full " + inter.style.fontFamily}>
                 <SizeCheck>
                     <BaseFirebaseComponent initialData={await (async () => {
                         const data = (await get(ref(getDatabase(firebase), "/data"))).val()
