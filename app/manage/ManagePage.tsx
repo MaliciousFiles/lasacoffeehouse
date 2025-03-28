@@ -1,15 +1,16 @@
 "use client";
 
-import firebase, {Performer} from "@/app/util/firebase/init";
+import firebase, {genUID, Performer, Song, Stage} from "@/app/util/firebase/init";
 import {getAuth} from "@firebase/auth";
-import React, {useContext, useEffect, useRef, useState} from "react";
+import React, {ReactElement, useContext, useEffect, useRef, useState} from "react";
 import FirebaseContext from "@/app/util/firebase/FirebaseContext";
 import {RiDraggable} from "react-icons/ri";
 import {FiEdit, FiTrash} from "react-icons/fi";
 import {
+    clearFCM,
     getNumFCM,
     removePerformer, sendMessageBatch,
-    sendNotification,
+    sendNotification, setAllData,
     setCurrentPerformer,
     updateClients,
     updatePerformer,
@@ -29,10 +30,8 @@ export default function ManagePage() {
 
     const [firebaseLoading, setFirebaseLoading] = useState(false);
 
-    const withoutImage = (p: Performer) => {return {...p, image: undefined}};
-
     useEffect(() => {
-        const activePerformers = data[stage].performers.slice(currentIdx, currentIdx+2).map(withoutImage);
+        const activePerformers = data[stage].performers.slice(currentIdx, currentIdx+2);
 
         // the user did something, therefore update clients with new data
         if (JSON.stringify(oldActivePerformers) != JSON.stringify(activePerformers.map(p => p.uid))) {
@@ -166,7 +165,7 @@ export default function ManagePage() {
                 .map(i => data[stage].performers[i]);
 
             updateFirebase(async (jwt) => {
-                await updatePerformers(jwt, stage, performers.map(withoutImage));
+                await updatePerformers(jwt, stage, performers);
                 await setCurrentPerformer(jwt, stage, currentIdx);
             });
             setDragging(-1);
@@ -201,6 +200,12 @@ export default function ManagePage() {
 
     const [locked, setLocked] = useState(true);
 
+    const [uploadPopup, setUploadPopup] = useState(false);
+    const [linkData, setLinkData] = useState<{ [stage: string]: Performer[] }>();
+    const [linkMessage, setLinkMessage] = useState<ReactElement>();
+    const [oldLinkMessage, setOldLinkMessage] = useState<ReactElement>();
+    useEffect(() => { if (linkMessage) setOldLinkMessage(linkMessage); }, [linkMessage]);
+
     const inactivityTimeout = useRef<NodeJS.Timeout>();
     useEffect(() => {
         document.addEventListener('visibilitychange', () => {
@@ -227,11 +232,104 @@ export default function ManagePage() {
 
             <div className={"flex justify-between flex-shrink-0 px-3 py-2"}>
                 <p className={"text-sm my-auto text-gray-800 font-semiheavy mx-0"}>Manager Hub</p>
-                <button className={"bg-gray-100 rounded-2xl text-xs text-gray-600 px-3 py-1"}
-                        onClick={() => getAuth(firebase).updateCurrentUser(null)}>Log Out
-                </button>
+                <div>
+                    <button className={"bg-gray-100 rounded-2xl text-xs text-gray-600 px-3 py-1 mr-3"}
+                            onClick={() => setUploadPopup(true)}>Upload Performers
+                    </button>
+                    <button className={"bg-gray-100 rounded-2xl text-xs text-gray-600 px-3 py-1"}
+                            onClick={() => getAuth(firebase).updateCurrentUser(null)}>Log Out
+                    </button>
+                </div>
             </div>
 
+            <Popup title={"Upload Performers"} open={uploadPopup} colorScheme={color}
+                   close={async (cancelled: boolean, inputs: InputList) => {
+                       setUploadPopup(false);
+                       if (cancelled) return;
+
+                       let {url} = inputs;
+                       let regex = /(https:\/\/)?docs.google.com\/spreadsheets\/d\/([0-9A-Za-z_-]{44}).*/
+                       if (!regex.test(url)) {
+                           setLinkMessage(<p className={"mx-6 mb-5 text-sm leading-5 text-red-400"}>Invalid Google Sheets link. Go to &quot;Share&quot; and then &quot;Copy Link&quot;.</p>);
+                           return;
+                       }
+
+                       let id = regex.exec(url)![2]; // first group is technically the https://
+
+                       let mainStage, smallStage;
+                       try {
+                           mainStage = await (await fetch(`https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&sheet=Main%20Stage`)).text();
+                           smallStage = await (await fetch(`https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&sheet=Small%20Stage`)).text();
+                       } catch { // assume it was a 302 from CORS
+                           setLinkMessage(<p className={"mx-6 mb-5 text-sm leading-5 text-red-400"}>Could not access Google Sheet. Make sure anyone with the link can view it.</p>);
+                           return;
+                       }
+
+                       if (mainStage == smallStage) {
+                           setLinkMessage(<p className={"mx-6 mb-5 text-sm leading-5 text-red-400"}>Invalid Google Sheet. Ensure it has two sheets named &quot;Main Stage&quot; and &quot;Small Stage&quot;.</p>);
+                           return;
+                       }
+
+                       let parseStage = (data: string) => {
+                           let performers: Performer[] = [];
+
+                           for (let l of data.split('\n').slice(1)) {
+                               const line = l.slice(1, -1).split('","');
+                               if (line.length < 10) continue;
+
+                               let name = line[5];
+                               if (!name) continue;
+
+                               let artists = line[6].split(',').map(a => a.trim()).filter(a => a);
+
+                               let songs: Song[] = [];
+                               for (let i = 8; i < line.length; i += 2) {
+                                   let song = line[i].replace(/^""|""$/g, "");
+                                   if (!song) continue;
+
+                                   let artist = line[i+1];
+                                   let original = artist === "ORIGINAL";
+
+                                   songs.push({name: song, artist: !artist || original ? undefined : artist, original});
+                               }
+
+                               performers.push({uid: genUID(), name, artists, songs});
+                           }
+
+                           return performers;
+                       };
+
+                       const data = {"Main Stage": parseStage(mainStage), "Small Stage": parseStage(smallStage)};
+                       setLinkData(data);
+
+                       setLinkMessage(<div>
+                           <p className={"mx-6 mb-2 text-sm leading-5"}>Are you sure you want to upload <b>{data['Main Stage'].length}</b> performers for the Main Stage and <b>{data['Small Stage'].length}</b> for the Small Stage?</p>
+                           <p className={"mx-6 mb-5 text-sm leading-5 text-red-400"}>! This action is irreversible, and will overwrite all existing data !</p>
+                       </div>);
+                   }}>
+                <div className={"mx-5 mt-3 mb-6 flex flex-col"}>
+                    <p className={"text-sm text-left"}>Google Sheets Link</p>
+                    <input autoCorrect={'off'} alt={"url"}
+                           className={"border text-xs border-gray-200 rounded-md py-2 px-3"}/>
+                </div>
+            </Popup>
+            <Popup title={"Validate Link"} open={linkMessage != undefined} continueButton={linkData != undefined} colorScheme={color}
+                   close={(cancelled: boolean) => {
+                      setLinkData(undefined);
+                      setLinkMessage(undefined);
+
+                      if (!cancelled) {
+                          updateFirebase(async (jwt) => {
+                              await clearFCM(jwt);
+
+                              let stages: {[stage: string]: Stage} = {}
+                              for (let stage in linkData!) stages[stage] = {name: stage, performers: linkData![stage], currentPerformer: 0};
+                              await setAllData(jwt, stages);
+                          });
+                      }
+                   }}>
+                {linkMessage ?? oldLinkMessage!}
+            </Popup>
             <Popup title={"Send Notification"} open={notifPopup} colorScheme={color}
                    close={(cancelled: boolean, inputs: InputList) => {
                        setNotifPopup(false);
@@ -378,7 +476,7 @@ export default function ManagePage() {
                 ])).slice(0, -1)}
             </div>
             <StageSelector stages={Object.keys(data)} selected={selectedStage} setSelected={setStage}
-                           className={"flex-shrink-0 h-12 w-full"}/>
+                           className={"flex-shrink-0 h-14 w-full"}/>
         </div>
     )
 }

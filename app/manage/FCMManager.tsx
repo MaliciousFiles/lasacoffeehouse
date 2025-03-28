@@ -5,7 +5,7 @@ import {getMessaging, TokenMessage} from 'firebase-admin/messaging';
 import {getDatabase} from "firebase-admin/database";
 import {getAuth} from "firebase-admin/auth";
 import {AES, enc} from "crypto-js";
-import {Performer} from "@/app/util/firebase/init";
+import {Performer, Stage} from "@/app/util/firebase/init";
 
 const firebase = getApps().find(a => a.name == "Admin App") ??
     initializeApp({
@@ -39,6 +39,12 @@ export async function updatePerformers(jwt: string, stage: string, performers: P
     await ref.set(current);
 }
 
+export async function setAllData(jwt: string, stages: {[name: string]: Stage}) {
+    if (!(await isValidJwt(jwt))) return;
+
+    await getDatabase(firebase).ref('/data').set(stages);
+}
+
 export async function updatePerformer(jwt: string, stage: string, performer: number, name: string, artists: string[]) {
     if (!(await isValidJwt(jwt))) return;
     const database = getDatabase(firebase);
@@ -55,6 +61,13 @@ export async function removePerformer(jwt: string, stage: string, performer: num
     performers.splice(performer, 1);
 
     await ref.set(performers);
+}
+
+export async function clearFCM(jwt: string) {
+    if (!(await isValidJwt(jwt))) return;
+    const database = getDatabase(firebase);
+
+    await getDatabase(firebase).ref(`/fcm`).remove();
 }
 
 async function getFCM() {

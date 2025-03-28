@@ -27,7 +27,6 @@ export type Performer = {
     name: string
     artists: string[]
     songs: Song[]
-    image?: string
 }
 
 export type Stage = {
