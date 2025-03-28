@@ -2,7 +2,7 @@ import React, {useEffect, useRef} from "react";
 
 export type InputList = {[i: string]: string};
 
-export default function Popup(props: {title: string, open: boolean, colorScheme: {border: string, bg: string, text: string, textLight: string}, close?: (cancelled: boolean, inputs: InputList)=>void, defaultValues?: InputList, children: React.JSX.Element[] | React.JSX.Element}) {
+export default function Popup(props: {title: string, open: boolean, colorScheme: {border: string, bg: string, text: string, textLight: string}, close?: (cancelled: boolean, inputs: InputList)=>void, continueButton?: boolean, defaultValues?: InputList, children: React.JSX.Element[] | React.JSX.Element}) {
     const {title, open, colorScheme} = props;
     const defaultValues = props.defaultValues ?? {};
 
@@ -39,7 +39,7 @@ export default function Popup(props: {title: string, open: boolean, colorScheme:
                         {closeable &&
                             <div className={"mx-3 flex justify-evenly"}>
                                 <button onClick={() => close(true)} className={`inline-block px-5 ${colorScheme.border} ${colorScheme.text} rounded-xl py-1.5`}>Cancel</button>
-                                <button onClick={() => close(false)} className={`inline-block px-5 ${colorScheme.bg} ${colorScheme.textLight} rounded-xl py-1.5`}>Continue</button>
+                                {(props.continueButton ?? true) && <button onClick={() => close(false)} className={`inline-block px-5 ${colorScheme.bg} ${colorScheme.textLight} rounded-xl py-1.5`}>Continue</button>}
                             </div>}
                     </div>
                 </div>
