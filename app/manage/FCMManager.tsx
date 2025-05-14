@@ -65,7 +65,6 @@ export async function removePerformer(jwt: string, stage: string, performer: num
 
 export async function clearFCM(jwt: string) {
     if (!(await isValidJwt(jwt))) return;
-    const database = getDatabase(firebase);
 
     await getDatabase(firebase).ref(`/fcm`).remove();
 }
@@ -147,23 +146,28 @@ export async function updateClients(jwt: string, stage: string, current: Perform
     const fcm = await getFCM();
 
     let messages: TokenMessage[] = [];
-    for (let token in fcm) {
-        if (stage in fcm[token]) {
-            for (let i = 0; i <= 1; i++) {
-                const performer = i == 0 ? current : next;
+    for (let i = 0; i <= 1; i++) {
+        const performer = i == 0 ? current : next;
+        if (!performer) continue;
 
-                if (fcm[token][stage].some(((p: any) => p === performer?.uid))) {
-                    messages.push({
-                        token,
-                        notification: {
-                            title: !i ? "Performing Now" : "Up Next",
-                            body: !i ? `${performer.name} is on stage!` : `${performer.name} is about to go on`
-                        }
-                    });
-                }
+        let ref = getDatabase(firebase).ref(`/data/${stage}/lastNotif/${i == 0 ? 'current' : 'next'}`);
+        if ((await ref.get()).val() === performer.uid) continue;
+        await ref.set(performer.uid);
+
+        for (let token in fcm) {
+            if (!(stage in fcm[token])) continue;
+
+            if (fcm[token][stage].some(((p: any) => p === performer?.uid))) {
+                messages.push({
+                    token,
+                    notification: {
+                        title: !i ? "Performing Now" : "Up Next",
+                        body: !i ? `${performer.name} is on stage! Catch them now.` : `${performer.name} is about to go on. Get ready!`
+                    }
+                });
             }
         }
     }
 
-    return await batchMessages(messages);
+    return messages ? await batchMessages(messages) : undefined;
 }

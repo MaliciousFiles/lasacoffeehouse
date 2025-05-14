@@ -25,7 +25,6 @@ export default async function RootLayout({
                 <SizeCheck>
                     <BaseFirebaseComponent initialData={await (async () => {
                         const data = (await get(ref(getDatabase(firebase), "/data"))).val()
-                        alert("INITIAL DATA: "+data['Main Stage'].performers.slice(data['Main Stage'].currentPerformer, data['Main Stage'].currentPerformer+2));
                         return Object.keys(data).reduce((obj, stage) => {
                             if (!('performers' in obj[stage])) obj[stage]['performers'] = [];
                             return obj;
