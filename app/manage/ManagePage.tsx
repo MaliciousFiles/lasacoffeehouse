@@ -35,7 +35,9 @@ export default function ManagePage() {
         const activeString = JSON.stringify(activePerformers.map(p => p.uid));
 
         // the user did something, therefore update clients with new data
+        alert(oldActivePerformers+" vs "+activeString);
         if (oldActivePerformers !== undefined && oldActivePerformers != activeString) {
+            alert("updating");
             updateFirebase(jwt => updateClients(jwt, stage, activePerformers[0], activePerformers[1]), false);
         } else {
             // since they didn't update it, visual scroll
