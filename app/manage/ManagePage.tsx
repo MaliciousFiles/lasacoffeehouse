@@ -45,7 +45,7 @@ export default function ManagePage() {
         setOldActivePerformers(activeString);
     }, [data]);
 
-    const updateFirebase = (func: (jwt: string)=>(Promise<void>|Promise<TokenMessage[][]>), fromUser: boolean = true) => {
+    const updateFirebase = (func: (jwt: string)=>(Promise<void>|Promise<TokenMessage[][]|undefined>), fromUser: boolean = true) => {
         if(fromUser) setFirebaseLoading(true);
 
         getAuth(firebase).currentUser?.getIdToken().then(jwt=>func(jwt).then(messages =>

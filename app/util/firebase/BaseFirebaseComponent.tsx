@@ -10,7 +10,9 @@ export default function BaseFirebaseComponent(props: {initialData: {[index: stri
 
     useEffect(() => {
         const dataRef = ref(getDatabase(firebase), "/data");
-        const handleSnapshot = (s: any) => setData(s.val());
+        const handleSnapshot = (s: any) => {
+            setData(s.val());
+        }
 
         document.onvisibilitychange = () => {
             document.visibilityState === 'visible' && get(dataRef).then(handleSnapshot);
