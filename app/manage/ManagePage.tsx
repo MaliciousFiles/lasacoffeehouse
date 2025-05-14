@@ -36,8 +36,10 @@ export default function ManagePage() {
 
         // the user did something, therefore update clients with new data
         if (oldActivePerformers !== undefined && oldActivePerformers != activeString) {
+            alert("UPDATING: "+oldActivePerformers +" -> "+activeString);
             updateFirebase(jwt => updateClients(jwt, stage, activePerformers[0], activePerformers[1]), false);
         } else {
+            alert("performers: "+activeString);
             // since they didn't update it, visual scroll
             scroll(true);
         }
