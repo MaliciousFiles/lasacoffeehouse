@@ -11,7 +11,6 @@ export default function BaseFirebaseComponent(props: {initialData: {[index: stri
     useEffect(() => {
         const dataRef = ref(getDatabase(firebase), "/data");
         const handleSnapshot = (s: any) => {
-            alert("GOT DATA: "+s.val()['Main Stage'].performers.slice(s.val()['Main Stage'].currentPerformer, s.val()['Main Stage'].currentPerformer+2));
             setData(s.val());
         }
 
