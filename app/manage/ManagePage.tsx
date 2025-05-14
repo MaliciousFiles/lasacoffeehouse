@@ -32,16 +32,17 @@ export default function ManagePage() {
 
     useEffect(() => {
         const activePerformers = data[stage].performers.slice(currentIdx, currentIdx+2);
+        const activeString = JSON.stringify(activePerformers.map(p => p.uid));
 
         // the user did something, therefore update clients with new data
-        if (JSON.stringify(oldActivePerformers) != JSON.stringify(activePerformers.map(p => p.uid))) {
+        if (oldActivePerformers !== undefined && oldActivePerformers != activeString) {
             updateFirebase(jwt => updateClients(jwt, stage, activePerformers[0], activePerformers[1]), false);
         } else {
             // since they didn't update it, visual scroll
             scroll(true);
         }
 
-        setOldActivePerformers(activePerformers.map(p => p.uid));
+        setOldActivePerformers(activeString);
     }, [data]);
 
     const updateFirebase = (func: (jwt: string)=>(Promise<void>|Promise<TokenMessage[][]>), fromUser: boolean = true) => {
@@ -57,7 +58,8 @@ export default function ManagePage() {
 
     let currentIdx = data[stage].currentPerformer;
 
-    const [oldActivePerformers, setOldActivePerformers] = useState(data[stage].performers.slice(currentIdx, currentIdx+2).map(p => p.uid));
+    // start undefined so the first fetch doesn't run updateClients
+    const [oldActivePerformers, setOldActivePerformers] = useState<string|undefined>(undefined);
 
     const [dragging, setDragging] = useState(-1);
     const performersContainer = useRef<HTMLDivElement>(null);
